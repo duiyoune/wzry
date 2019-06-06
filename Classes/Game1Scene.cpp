@@ -24,6 +24,7 @@ bool Game1::init()
 	UI();//界面
 	creep();//小兵
 	hero_BM();//英雄
+	hero_ai();//令人发狂的电脑
 	_event();//事件
 	tool();//工具
 	return true;

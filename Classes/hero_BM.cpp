@@ -3,7 +3,7 @@
 void Game1::hero_BM()
 {
 	hero = Sprite::create("bm.png");
-	float positionX = visibleSize.width / 2 + origin.x;
+	float positionX = 100;
 	float positionY = visibleSize.height / 2 + origin.y;
 	hero->setPosition(Vec2(positionX, positionY));
 	this->addChild(hero, 99);
@@ -18,6 +18,16 @@ void Game1::hero_BM()
 //英雄进入攻击范围停止
 void Game1::heroPauseAttackRange()
 {
+	//攻击英雄
+	if (attack_heroAai == true && hero != nullptr)
+	{
+		if (Distance(hero, ai) <= AttackRange_hero)
+		{
+			hero->stopActionByTag(tag_hero);
+			attack_heroAai = false;
+		}
+	}
+	//攻击小兵
 	if (attack_heroAcreep == true && hero != nullptr)
 	{
 		if (Distance(hero, creep_enemy[attack_target]) <= AttackRange_hero)
@@ -30,12 +40,31 @@ void Game1::heroPauseAttackRange()
 //英雄进入施法范围停止
 void Game1::heroPauseCastRange()
 {
-	if (ability3Moving == true)
+	//ai
+	if (ability3MovingToAI == true)
+	{
+		if (Distance(hero, ai) <= CastRange_ability3)
+		{
+			hero->stopActionByTag(1);
+			ability3MovingToAI = false;
+			//技能3效果
+			ability3Effect();
+		}
+		//目标英雄死亡中断技能3
+		if (HP_ai <= 0)
+		{
+			hero->stopActionByTag(1);
+			ability3MovingToAI = false;
+		}
+		return;
+	}
+	//小兵
+	if (ability3MovingToCreep == true)
 	{
 		if (Distance(hero, creep_enemy[ability3_target]) <= CastRange_ability3)
 		{
 			hero->stopActionByTag(1);
-			ability3Moving = false;
+			ability3MovingToCreep = false;
 			//技能3效果
 			ability3Effect();
 		}
@@ -43,13 +72,24 @@ void Game1::heroPauseCastRange()
 		if (HP_enemy[ability3_target] <= 0)
 		{
 			hero->stopActionByTag(1);
-			ability3Moving = false;
+			ability3MovingToCreep = false;
 		}
 	}
 }
 //英雄攻击
 void Game1::attack_heroUpdate(float delta)
 {
+	//攻击英雄
+	if (hero != nullptr&&ai != nullptr)
+	{
+		if (Distance(hero, ai) <= AttackRange_hero)
+		{
+			HP_ai -= ability4()*Damage_hero;
+			hp_ai->setPercent(100 * HP_ai / Max_HP_ai);
+			return;
+		}
+	}
+	//攻击小兵
 	if (hero != nullptr&&creep_enemy[attack_target] != nullptr)
 	{
 		if (Distance(hero, creep_enemy[attack_target]) <= AttackRange_hero)
@@ -77,6 +117,17 @@ void Game1::moveWithMouse(float X, float Y)
 	hero->runAction(moveTo);
 	moveTo->setTag(tag_hero);
 }
+//是否点击敌方英雄以攻击
+void Game1::clickAI(float X, float Y)
+{
+	if (ai != nullptr)
+	{
+		if (InTheArea(X, Y, ai) == true)
+		{
+			attack_heroAai = true;
+		}
+	}
+}
 //是否点击敌方小兵以攻击
 void Game1::clickCreep_enemy(float X, float Y)
 {
@@ -86,7 +137,6 @@ void Game1::clickCreep_enemy(float X, float Y)
 		{
 			if (InTheArea(X, Y, creep_enemy[i]) == true)
 			{
-				//攻击
 				attack_heroAcreep = true;
 				attack_target = i;
 				break;
@@ -111,8 +161,18 @@ void Game1::death_hero()
 			BGM->stopBackgroundMusic(false);
 			auto SoundEffect = SimpleAudioEngine::getInstance();
 			SoundEffect->playEffect("death.wav", false, 1, 0, 1);
+			//重生
+			this->scheduleOnce(schedule_selector(Game1::RespawnHeroUpdate), RespawnTime_hero);
 		}
 	}
+}
+//英雄重生
+void Game1::RespawnHeroUpdate(float delta)
+{
+	HP_hero = 1000;
+	hero_BM();
+	auto BGM = SimpleAudioEngine::getInstance();
+	BGM->resumeBackgroundMusic();
 }
 //英雄血条跟随
 void Game1::hpFollow_hero()

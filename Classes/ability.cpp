@@ -14,14 +14,10 @@ void Game1::ability1()
 	//技能1效果
 	switch (LV_ability1)
 	{
-	case 1:HP_hero *= 0.5;
-		MoveSpeed_hero *= 1.5; AttackInterval_hero *= 0.65; Damage_hero *= 1.5; break;
-	case 2:HP_hero *= 0.5;
-		MoveSpeed_hero *= 1.65; AttackInterval_hero *= 0.6; Damage_hero *= 1.65; break;
-	case 3:HP_hero *= 0.5;
-		MoveSpeed_hero *= 1.8; AttackInterval_hero *= 0.55; Damage_hero *= 1.8; break;
-	case 4:HP_hero *= 0.5;
-		MoveSpeed_hero *= 2; AttackInterval_hero *= 0.5; Damage_hero *= 2; break;
+	case 1:MoveSpeed_hero *= 1.5; AttackInterval_hero *= 0.65; Damage_hero *= 1.5; break;
+	case 2:MoveSpeed_hero *= 1.65; AttackInterval_hero *= 0.6; Damage_hero *= 1.65; break;
+	case 3:MoveSpeed_hero *= 1.8; AttackInterval_hero *= 0.55; Damage_hero *= 1.8; break;
+	case 4:MoveSpeed_hero *= 2; AttackInterval_hero *= 0.5; Damage_hero *= 2; break;
 	}
 }
 //技能1持续时间
@@ -58,6 +54,16 @@ void Game1::ability2()
 	auto FadeOut = FadeOut::create(2);
 	blade->runAction(FadeOut);
 	//技能2效果
+	if (Distance(hero, ai) <= 400)
+	{
+		switch (LV_ability2)
+		{
+		case 1:HP_ai -= 200; break;
+		case 2:HP_ai -= 400; break;
+		case 3:HP_ai -= 600; break;
+		case 4:HP_ai -= 800; break;
+		}
+	}
 	for (int i = 0; i < 600; i++)
 	{
 		if (Distance(hero, creep_enemy[i]) <= 400)
@@ -87,8 +93,18 @@ void Game1::ability3Effect()
 	AbilitySoundEffect->playEffect("ability3.wav", false, 1, 0, 1);
 	//技能3动画
 	auto blade = Sprite::create("blade.png");
-	float positionX = creep_enemy[ability3_target]->getPositionX();
-	float positionY = creep_enemy[ability3_target]->getPositionY();
+	float positionX;
+	float positionY;
+	if (ability3_targetAI == true)
+	{
+		positionX = ai->getPositionX();
+		positionY = ai->getPositionY();
+	}
+	else 
+	{
+		positionX = creep_enemy[ability3_target]->getPositionX();
+		positionY = creep_enemy[ability3_target]->getPositionY();
+	}
 	blade->setPosition(Vec2(positionX, positionY + 50));
 	this->addChild(blade, 1);
 	auto MoveTo = MoveTo::create(2, Vec2(positionX, positionY));
@@ -96,6 +112,18 @@ void Game1::ability3Effect()
 	auto FadeOut = FadeOut::create(2);
 	blade->runAction(FadeOut);
 	//技能3效果
+	if (ability3_targetAI == true)
+	{
+		ability3_targetAI = false;
+		switch (LV_ability3)
+		{
+		case 1:HP_ai -= 500; break;
+		case 2:HP_ai -= 1000; break;
+		case 3:HP_ai -= 1500; break;
+		case 4:HP_ai -= 2000; break;
+		}
+		return;
+	}
 	switch (LV_ability3)
 	{
 	case 1:HP_enemy[ability3_target] -= 500; break;
@@ -107,6 +135,33 @@ void Game1::ability3Effect()
 //判断技能3是否作用于敌方单位
 void Game1::ability3Hit(float X, float Y)
 {
+	//ai
+	if (InTheArea(X, Y, ai) == true)
+	{
+		ability3Clicked = false;
+		ability3_targetAI = true;
+		cursor->removeFromParent();
+		cursor = nullptr;
+		//判断敌人是否进入技能3施法范围
+		if (Distance(hero, ai) > CastRange_ability3)
+		{
+			//移动至施法范围内
+			ability3MovingToAI = true;
+			float time = Distance(hero, ai) / MoveSpeed_hero;
+			float positionX = ai->getPositionX();
+			float positionY = ai->getPositionY();
+			auto moveTo = MoveTo::create(time, Vec2(positionX, positionY));
+			hero->runAction(moveTo);
+			moveTo->setTag(1);
+		}
+		if (Distance(hero, ai) <= CastRange_ability3)
+		{
+			//技能3效果
+			ability3Effect();
+		}
+		return;
+	}
+	//小兵
 	for (int i = 0; i < 600; i++)
 	{
 		if (creep_enemy[i] != nullptr)
@@ -115,12 +170,13 @@ void Game1::ability3Hit(float X, float Y)
 			{
 				ability3_target = i;
 				ability3Clicked = false;
-				cursor->setPosition(-1000, -1000);
+				cursor->removeFromParent();
+				cursor = nullptr;
 				//判断敌人是否进入技能3施法范围
 				if (Distance(hero, creep_enemy[ability3_target]) > CastRange_ability3)
 				{
 					//移动至施法范围内
-					ability3Moving = true;
+					ability3MovingToCreep = true;
 					float time = Distance(hero, creep_enemy[ability3_target]) / MoveSpeed_hero;
 					float positionX = creep_enemy[ability3_target]->getPositionX();
 					float positionY = creep_enemy[ability3_target]->getPositionY();

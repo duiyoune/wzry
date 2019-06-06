@@ -16,12 +16,16 @@ void Game1::update(float delta)
 	heroPauseCastRange();
 	//Ó¢ĞÛÑªÌõ¸úËæ
 	hpFollow_hero();
+	//aiÑªÌõ¸úËæ
+	hpFollow_ai();
 	//Ğ¡±øÑªÌõ¸úËæ
 	hpFollow_creep();
-	//Ğ¡±øËÀÍö
-	death_creep();
 	//Ó¢ĞÛËÀÍö
 	death_hero();
+	//aiËÀÍö
+	death_ai();
+	//Ğ¡±øËÀÍö
+	death_creep();
 	//ÏÔÊ¾¾­ÑéµÈ¼¶
 	xpANDlv();
 }
@@ -41,17 +45,20 @@ float Game1::Distance(Sprite * A, Sprite * B)
 //ÅĞ¶ÏµãÊÇ·ñÔÚÇøÓòÄÚ
 bool Game1::InTheArea(float X, float Y, Sprite  * A)
 {
-	float positionX = A->getPositionX();
-	float positionY = A->getPositionY();
-	float contentSizeX = A->getContentSize().width;
-	float contentSizeY = A->getContentSize().height;
-	float area_Xmin = positionX - 0.5*contentSizeX;
-	float area_Xmax = positionX + 0.5*contentSizeX;
-	float area_Ymin = positionY - 0.5*contentSizeY;
-	float area_Ymax = positionY + 0.5*contentSizeY;
-	if (X >= area_Xmin && X <= area_Xmax && Y >= area_Ymin && Y <= area_Ymax)
+	if (A != nullptr)
 	{
-		return true;
-	}
-	else return false;
+		float positionX = A->getPositionX();
+		float positionY = A->getPositionY();
+		float contentSizeX = A->getContentSize().width;
+		float contentSizeY = A->getContentSize().height;
+		float area_Xmin = positionX - 0.5*contentSizeX;
+		float area_Xmax = positionX + 0.5*contentSizeX;
+		float area_Ymin = positionY - 0.5*contentSizeY;
+		float area_Ymax = positionY + 0.5*contentSizeY;
+		if (X >= area_Xmin && X <= area_Xmax && Y >= area_Ymin && Y <= area_Ymax)
+		{
+			return true;
+		}
+		else return false;
+	}	
 }

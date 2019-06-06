@@ -21,7 +21,7 @@ void Game1::onMouseDown(Event *event)
 	float cursorX = e->getCursorX();
 	float cursorY = e->getCursorY();
 	//获取技能3目标
-	if (ability3Clicked == true || ability3Moving == true)
+	if (ability3Clicked == true || ability3MovingToCreep == true|| ability3MovingToAI == true)
 	{
 		//判断技能3是否作用于敌方单位
 		ability3Hit(cursorX, cursorY);
@@ -31,6 +31,8 @@ void Game1::onMouseDown(Event *event)
 	{
 		//英雄随鼠标移动
 		moveWithMouse(cursorX, cursorY);
+		//是否点击敌方英雄以攻击
+		clickAI(cursorX, cursorY);
 		//是否点击敌方小兵以攻击
 		clickCreep_enemy(cursorX, cursorY);
 	}

@@ -21,7 +21,7 @@ public:
 	void timeUpdate(float delta);//显示时间
 	void scoreBoard();//计分板
 	void closeScoreBoard();//关闭计分板
-	void xpANDlv();//显示经验等级
+	void xpANDlv();//经验等级
 
 	void creep();//小兵
 	void creepsUpdate(float delta);//定时出兵
@@ -35,9 +35,16 @@ public:
 	void heroPauseCastRange();//英雄进入施法范围停止
 	void attack_heroUpdate(float delta);//英雄攻击
 	void moveWithMouse(float X, float Y);//英雄随鼠标移动
+	void clickAI(float X, float Y);//是否点击敌方英雄以攻击
 	void clickCreep_enemy(float X, float Y);//是否点击敌方小兵以攻击
 	void death_hero();//英雄死亡
+	void RespawnHeroUpdate(float delta);//英雄重生
 	void hpFollow_hero();//英雄血条跟随
+
+	void hero_ai();//令人发狂的电脑
+	void hpFollow_ai();//ai血条跟随
+	void death_ai();//ai死亡
+	void RespawnAIUpdate(float delta);//ai重生
     //技能
 	void ability1();//技能1
 	void ability1DurationUpdate(float delta);//技能1持续时间
@@ -72,6 +79,7 @@ public:
 	int kills = 0;//击杀数
 	int deaths = 0;//死亡数
 	Label * column_xp_and_lv;//经验、等级
+	bool lvUP=false;//判断是否升级
 	int xp = 0;//经验
 	int lv = 0;//等级
 	Sprite * cursor;//光标
@@ -89,11 +97,13 @@ public:
 	MoveBy * move_enemy;//敌方小兵移动
 	bool pause_ally[600] = { 0 };//友方小兵是否停止移动
 	bool pause_enemy[600] = { 0 };//敌方小兵是否停止移动
+	bool attack_creepAai[600] = { 0 };//友方小兵是否攻击敌方英雄
 	bool attack_creepAhero[600] = { 0 };//敌方小兵是否攻击友方英雄
 	int i_creep = 0;//小兵序号
 	int j_creep = 0;//小兵序号
 	//小兵属性
 	int CreepsSpawnInterval = 10;//出兵间隔
+	double MoveSpeed_creep = 150;//小兵移动速度
 	double AttackRange_creep = 150;//小兵攻击范围
 	double AttackInterval_creep = 1;//小兵攻击间隔
 	double Damage_creep = 50;//小兵攻击力
@@ -103,40 +113,54 @@ public:
 	//英雄
 	Sprite *  hero;//英雄
 	LoadingBar * hp_hero;//英雄血条
+	bool attack_heroAai = false;//英雄是否攻击敌方英雄
 	int attack_target = -1;//英雄所攻击的敌方小兵
 	bool attack_heroAcreep = false;//英雄是否攻击小兵
 	int tag_hero = 0;//英雄动作
 	//英雄属性
+	int RespawnTime_hero = 10;//重生时间
 	double MoveSpeed_hero = 500;//英雄移动速度
 	double AttackRange_hero = 300;//英雄攻击范围
 	double AttackInterval_hero = 0.5;//英雄攻击间隔
 	double Damage_hero = 200;//英雄攻击力
 	double HP_hero = 1000;//英雄血量
 	double Max_HP_hero = 1000;//英雄最大血量
+	//令人发狂的电脑
+	Sprite *  ai;//ai
+	LoadingBar * hp_ai;//ai血条
+	int RespawnTime_ai = 10;//重生时间
+	double MoveSpeed_ai = 500;//ai移动速度
+	double AttackRange_ai = 300;//ai攻击范围
+	double AttackInterval_ai = 0.5;//ai攻击间隔
+	double Damage_ai = 200;//ai攻击力
+	double HP_ai = 1000;//ai血量
+	double Max_HP_ai = 1000;//ai最大血量
 	//技能
 	//技能1
-	int LV_ability1 = 4;//技能1等级
+	int LV_ability1 = 0;//技能1等级
 	bool duration_ability1 = false;//技能1是否处于持续期间
 	bool cd_ability1 = false;//技能1是否处于冷却期间
 	//技能1属性
 	int CD_ability1 = 30;//技能1冷却时间
 	int Duration_ability1 = 15;//技能1持续时间
 	//技能2
-	int LV_ability2 = 4;//技能2等级
+	int LV_ability2 = 0;//技能2等级
 	bool cd_ability2 = false;//技能2是否处于冷却期间
 	//技能2属性
 	int CD_ability2 = 10;//技能2冷却时间
 	//技能3
-	int LV_ability3 = 4;//技能3等级
+	int LV_ability3 = 0;//技能3等级
 	bool cd_ability3 = false;//技能3是否处于冷却期间
 	bool ability3Clicked = false;//技能3是否被按下
 	int ability3_target = -1;//技能3所作用的小兵
-	bool ability3Moving = false;//英雄是否为释放技能3处于移动中
+	bool ability3_targetAI = false;//技能3是否作用于ai
+	bool ability3MovingToCreep = false;//英雄是否为释放技能3向小兵移动
+	bool ability3MovingToAI = false;//英雄是否为释放技能3向ai移动
 	//技能3属性
 	double CastRange_ability3 = 500;//技能3施法范围
 	int CD_ability3 = 10;//技能3冷却时间
 	//技能4
-	int LV_ability4 = 4;//技能4等级
+	int LV_ability4 = 0;//技能4等级
 };
 
 #endif // __Game1_SCENE_H__
