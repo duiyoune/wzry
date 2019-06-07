@@ -40,11 +40,17 @@ public:
 	void death_hero();//英雄死亡
 	void RespawnHeroUpdate(float delta);//英雄重生
 	void hpFollow_hero();//英雄血条跟随
+	void healthRegen_heroUpdate(float delta);//英雄自动回血
 
 	void hero_ai();//令人发狂的电脑
-	void hpFollow_ai();//ai血条跟随
+	void aiAction();//ai行动
+	void aiPauseAndResume();//ai进入攻击范围停止和恢复移动
+	void attack_aiUpdate(float delta);//ai攻击
 	void death_ai();//ai死亡
 	void RespawnAIUpdate(float delta);//ai重生
+	void hpFollow_ai();//ai血条跟随
+	void healthRegen_aiUpdate(float delta);//ai自动回血
+
     //技能
 	void ability1();//技能1
 	void ability1DurationUpdate(float delta);//技能1持续时间
@@ -83,11 +89,6 @@ public:
 	int xp = 0;//经验
 	int lv = 0;//等级
 	Sprite * cursor;//光标
-	string str1;
-	string str2;
-	string str3;
-	string str4;
-	string str5;
 	//小兵
 	Sprite *  creep_ally[10000];//友方小兵
 	Sprite *  creep_enemy[10000];//敌方小兵
@@ -109,7 +110,9 @@ public:
 	double Damage_creep = 50;//小兵攻击力
 	double HP_ally[600];//友方小兵血量
 	double HP_enemy[600];//敌方小兵血量
-	double Max_HP_creep = 1000;//小兵最大血量
+	double Max_HP_creep = 500;//小兵最大血量
+
+	double HealthRegen = 100;//泉水回血
 	//英雄
 	Sprite *  hero;//英雄
 	LoadingBar * hp_hero;//英雄血条
@@ -120,21 +123,29 @@ public:
 	//英雄属性
 	int RespawnTime_hero = 10;//重生时间
 	double MoveSpeed_hero = 500;//英雄移动速度
-	double AttackRange_hero = 300;//英雄攻击范围
+	int AttackRange_hero = 300;//英雄攻击范围
 	double AttackInterval_hero = 0.5;//英雄攻击间隔
-	double Damage_hero = 200;//英雄攻击力
+	double Damage_hero = 100;//英雄攻击力
 	double HP_hero = 1000;//英雄血量
 	double Max_HP_hero = 1000;//英雄最大血量
+	double HealthRegen_hero = 10;//英雄每秒回血
 	//令人发狂的电脑
 	Sprite *  ai;//ai
 	LoadingBar * hp_ai;//ai血条
+	bool aiAssault = false;//ai是否冲锋
+	bool aiRetreat = false;//ai是否撤退
+	bool aiAssaulting = false;//ai是否正在冲锋
+	bool aiRetreating = false;//ai是否正在撤退
+	bool pause_ai = false;//ai是否停止移动
+	//ai属性
 	int RespawnTime_ai = 10;//重生时间
 	double MoveSpeed_ai = 500;//ai移动速度
-	double AttackRange_ai = 300;//ai攻击范围
+	int AttackRange_ai = 300;//ai攻击范围
 	double AttackInterval_ai = 0.5;//ai攻击间隔
-	double Damage_ai = 200;//ai攻击力
+	double Damage_ai = 100;//ai攻击力
 	double HP_ai = 1000;//ai血量
 	double Max_HP_ai = 1000;//ai最大血量
+	double HealthRegen_ai = 10;//ai每秒回血
 	//技能
 	//技能1
 	int LV_ability1 = 0;//技能1等级

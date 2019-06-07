@@ -140,8 +140,11 @@ void Game1::ability3Hit(float X, float Y)
 	{
 		ability3Clicked = false;
 		ability3_targetAI = true;
-		cursor->removeFromParent();
-		cursor = nullptr;
+		if (cursor != nullptr)
+		{
+			cursor->removeFromParent();
+			cursor = nullptr;
+		}		
 		//判断敌人是否进入技能3施法范围
 		if (Distance(hero, ai) > CastRange_ability3)
 		{
@@ -207,7 +210,7 @@ void Game1::ability3Cursor(float X, float Y)
 		cursor->removeFromParent();
 	}
 	cursor = Sprite::create("cursor.png");
-	this->addChild(cursor);
+	this->addChild(cursor,100);
 	cursor->setPosition(X, Y);
 }
 //技能4

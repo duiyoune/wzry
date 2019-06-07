@@ -14,6 +14,8 @@ void Game1::hero_BM()
 	hp_hero->setPercent(100);
 	//Ó¢ÐÛ¹¥»÷
 	this->schedule(schedule_selector(Game1::attack_heroUpdate), AttackInterval_hero);
+	//Ó¢ÐÛ×Ô¶¯»ØÑª
+	this->schedule(schedule_selector(Game1::healthRegen_heroUpdate), 0.01);
 }
 //Ó¢ÐÛ½øÈë¹¥»÷·¶Î§Í£Ö¹
 void Game1::heroPauseAttackRange()
@@ -79,13 +81,12 @@ void Game1::heroPauseCastRange()
 //Ó¢ÐÛ¹¥»÷
 void Game1::attack_heroUpdate(float delta)
 {
-	//¹¥»÷Ó¢ÐÛ
+	//¹¥»÷ai
 	if (hero != nullptr&&ai != nullptr)
 	{
 		if (Distance(hero, ai) <= AttackRange_hero)
 		{
 			HP_ai -= ability4()*Damage_hero;
-			hp_ai->setPercent(100 * HP_ai / Max_HP_ai);
 			return;
 		}
 	}
@@ -95,7 +96,6 @@ void Game1::attack_heroUpdate(float delta)
 		if (Distance(hero, creep_enemy[attack_target]) <= AttackRange_hero)
 		{
 			HP_enemy[attack_target] -= ability4()*Damage_hero;
-			hp_enemy[attack_target]->setPercent(100 * HP_enemy[attack_target] / Max_HP_creep);
 		}
 	}
 }
@@ -149,7 +149,7 @@ void Game1::death_hero()
 {
 	if (hero != nullptr)
 	{
-		if (hp_hero->getPercent() <= 0 || HP_hero <= 0)
+		if (HP_hero <= 0)
 		{
 			hero->removeFromParent();
 			hp_hero->removeFromParent();
@@ -180,8 +180,27 @@ void Game1::hpFollow_hero()
 	if (hero != nullptr)
 	{
 		hp_hero->setPercent(100 * HP_hero / Max_HP_hero);
-		float positionX_hero = hero->getPositionX();
-		float positionY_hero = hero->getPositionY() + 0.5*hero->getContentSize().height + 0.5*hp_hero->getContentSize().height;
-		hp_hero->setPosition(Vec2(positionX_hero, positionY_hero));
+		float positionX = hero->getPositionX();
+		float positionY = hero->getPositionY() + 0.5*hero->getContentSize().height + 0.5*hp_hero->getContentSize().height;
+		hp_hero->setPosition(Vec2(positionX, positionY));
+	}
+}
+//Ó¢ÐÛ×Ô¶¯»ØÑª
+void Game1::healthRegen_heroUpdate(float delta)
+{
+	if (hero != nullptr)
+	{
+		
+		if (HP_hero < Max_HP_hero )
+		{
+			//Ó¢ÐÛ×ÔÉí»ØÑª
+			HP_hero += HealthRegen_hero / 100;
+			//ÈªË®»ØÑª
+			float X = hero->getPositionX();
+			if (X < 300)
+			{
+				HP_hero += HealthRegen / 100;
+			}
+		}
 	}
 }

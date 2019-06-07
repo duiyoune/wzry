@@ -10,22 +10,27 @@ void Game1::update(float delta)
 {
 	//小兵进入攻击范围停止和恢复移动
 	creepPauseAndResume();
+	
+	//小兵死亡
+	death_creep();
+	//小兵血条跟随
+	hpFollow_creep();
 	//英雄进入攻击范围停止
 	heroPauseAttackRange();
 	//英雄进入施法范围停止
 	heroPauseCastRange();
 	//英雄血条跟随
 	hpFollow_hero();
-	//ai血条跟随
-	hpFollow_ai();
-	//小兵血条跟随
-	hpFollow_creep();
 	//英雄死亡
 	death_hero();
+	//ai状态
+	aiAction();
+	//ai进入攻击范围停止和恢复移动
+	aiPauseAndResume();
+	//ai血条跟随
+	hpFollow_ai();
 	//ai死亡
-	death_ai();
-	//小兵死亡
-	death_creep();
+	death_ai();	
 	//显示经验等级
 	xpANDlv();
 }

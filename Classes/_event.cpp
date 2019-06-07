@@ -92,6 +92,16 @@ void Game1::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 			}
 		}
 	}
+	//取消释放技能3
+	if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE && hero != nullptr)
+	{
+		ability3Clicked = false;
+		if (cursor != nullptr)
+		{
+			cursor->removeFromParent();
+			cursor = nullptr;
+		}
+	}
 }
 //键盘松开
 void Game1::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
