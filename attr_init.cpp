@@ -10,30 +10,30 @@
 void attr::init()
 {
     hero1.HP=1000;
+    hero1.HP_max=1000;
     hero1.attack_dis=500;
     hero1.base_damage=30;
     
     melee.attack_dis=100;
-    melee.HP=200;
     melee.base_damage=20;
     
     range.attack_dis=400;
-    range.HP=100;
     range.base_damage=30;
     
     tower.attack_dis=450;
     tower.HP=1000;
-    tower.base_damage=50;
+    tower.base_damage=20;
     
     crystal.attack_dis=500;
     crystal.HP=3000;
-    crystal.base_damage=60;
+    crystal.base_damage=30;
 }
 
-void attr::init_creep()
+void attr::init_creep(int i)
 {
-    melee.HP=200;
-    range.HP=100;
+    melee.HP[i]=200;
+    range.HP[i]=100;
+    catapult.HP[i]=150;
 }
 
 

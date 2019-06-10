@@ -21,14 +21,19 @@ public:
     }hero1;
     struct attr_creep
     {
+        int HP[600];
+        int base_damage;
+        int attack_dis;
+    }melee,range,catapult;
+    struct attr_tower
+    {
         int HP;
         int base_damage;
         int attack_dis;
-    }melee,range,tower,catapult,crystal;
+    }tower,crystal;
 public:
     void init();
-    void init_creep();
-    int get_melee_HP(){return melee.HP;};
+    void init_creep(int i);
 };
 
 #endif /* attr_init_hpp */
