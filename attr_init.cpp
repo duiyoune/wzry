@@ -13,6 +13,8 @@ void attr::init()
     hero1.HP_max=1000;
     hero1.attack_dis=500;
     hero1.base_damage=30;
+    hero1.gold=1000000;
+    hero1.exp=0;
     
     melee.attack_dis=100;
     melee.base_damage=20;

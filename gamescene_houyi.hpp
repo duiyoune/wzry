@@ -32,6 +32,7 @@ public:
     int time_tolive;
     bool flag_creep;
     bool flag_heroalive;
+
     std::string str;
 public:
     virtual bool init();
@@ -44,8 +45,7 @@ private:
     void update_creep2(float t);
     void update_creep3(float t);
     void update_creep4(float t);
-    attr a;
-    attr b;
+
     void update_Melee_creep1_attack(float t);
     void update_Range_creep1_attack(float t);
     void update_Catapult1_attack(float t);
@@ -65,6 +65,7 @@ private:
     int getDistance(Sprite *target1 ,Sprite *target2);
 
     void onMouseMove(Event * event);
+
     void getBloodbar(Sprite *guaisprite ,float a);
     void getBloodbar1(Sprite *guaisprite ,float a);
     void hero_Attack();
@@ -86,13 +87,15 @@ private:
     Sprite * pBloodKongSp;
     Sprite * cursor;
     Sprite * flag_sprite;
-    Label * label;
+    Label * label_time;
+    Label * label_gold;
 
 public:
+
     int attack_flag=0;
-    int tag_flag=0;
-    int tag_hero=0;
-    int tag_layer=0;
+    int tag_flag=5;
+    int tag_hero=6;
+    int tag_layer=7;
     int experience_hero1=0;
     int experience_hero2=0;
     int creep_i=-1;
@@ -119,6 +122,11 @@ public:
     virtual bool init();
     CREATE_FUNC(set);
     Sprite * equipment;
+    void onMouseDown(Event * event);
+public:
+    int equip_number=-1;
+    int equipX[6]={655,712,764,655,712,764};
+    int equipY[6]={66,66,66,22,22,22};
 
 };
 

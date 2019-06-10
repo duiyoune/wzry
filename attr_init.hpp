@@ -18,6 +18,8 @@ public:
         int HP_max;
         int base_damage;
         int attack_dis;
+        int gold;
+        int exp;
     }hero1;
     struct attr_creep
     {
