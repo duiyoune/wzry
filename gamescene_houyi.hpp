@@ -32,6 +32,7 @@ public:
     int time_tolive;
     bool flag_creep;
     bool flag_heroalive;
+    bool flag_aialive;
 
     std::string str;
 public:
@@ -52,6 +53,7 @@ private:
     void update_tower1_attack(float t);
     void update_heroHP(float t);
     void update_time(float t);
+    void update_ai(float t);
     void clickCreep_enemy(float X, float Y);
     void update_Melee_creep2_attack(float t);
     void update_Range_creep2_attack(float t);
@@ -73,6 +75,7 @@ private:
     
 private:
     Sprite * sprite;
+    Sprite * ai;
     Sprite * Melee_creep1[600];
     Sprite * Melee_creep2[600];
     Sprite * Crystal1;
@@ -98,7 +101,7 @@ public:
     int tag_layer=7;
     int experience_hero1=0;
     int experience_hero2=0;
-    int creep_i=-1;
+    int creep_i=0;
     int deltaX=0;
     int melee1_j;
     int melee2_j;

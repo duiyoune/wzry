@@ -42,7 +42,15 @@ bool gamescene_houyi::init()
     
     auto visibleSize = Director::getInstance()->getVisibleSize();
     
-
+    for(int i=0;i<600;i++)
+    {
+        Melee_creep1[i]=NULL;
+        Melee_creep2[i]=NULL;
+        Range_creep1[i]=NULL;
+        Range_creep2[i]=NULL;
+        Catapult1[i]=NULL;
+        Catapult2[i]=NULL;
+    }
 
 
     a.init();
@@ -54,6 +62,13 @@ bool gamescene_houyi::init()
     sprite->setPosition(visibleSize.width/2,visibleSize.height/2);
     this->addChild(sprite,4);
     flag_heroalive=true;
+    
+    ai=Sprite::create("HelloWorld.png");
+    ai->setPosition(3500,visibleSize.height/2);
+    ai->setScale(0.5);
+    this->addChild(ai,4);
+    flag_aialive=true;
+    
     
     auto listener= EventListenerMouse::create();
     listener->onMouseDown=CC_CALLBACK_1(gamescene_houyi::onMouseMove, this);
@@ -171,7 +186,7 @@ bool set::init()
 
 void gamescene_houyi::update_creep1(float t)
 {
-    creep_i++;
+
     auto visibleSize = Director::getInstance()->getVisibleSize();
     flag_creep=true;
     Melee_creep1[creep_i]=Sprite::create("小兵.jpg");
@@ -202,13 +217,14 @@ void gamescene_houyi::update_creep1(float t)
     a.init_creep(creep_i);
     b.init_creep(creep_i);
 
-
+    creep_i++;
     
 
     this->schedule(schedule_selector(gamescene_houyi::update_Melee_creep1_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Melee_creep2_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Range_creep1_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Range_creep2_attack),1);
+    this->schedule(schedule_selector(gamescene_houyi::update_ai),1);
 
 }
 
@@ -709,7 +725,6 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
                 }
             }
         }
-        
         if(a.melee.HP[j]>0)
             this->getBloodbar(Melee_creep1[j],(200-a.melee.HP[j])/2);
         if(b.melee.HP[j]>0)
@@ -1270,6 +1285,100 @@ int gamescene_houyi::getDistance(Sprite *target1 ,Sprite *target2)
 //    }
 //}
 
+void gamescene_houyi::update_ai(float t)
+{
+    if(b.hero1.HP>b.hero1.HP_max/2)
+    {
+        int dis[15];
+        int min_dis=100000;
+        int flag=std::min(4,creep_i);
+        Sprite *target;
+        for(int i=0;i<15;i++)
+            dis[i]=10000;
+        for(int i=0;i<flag;i++)
+        {
+            if(Melee_creep1[creep_i-i]!=NULL)
+            {
+                dis[i]=abs(ai->getPositionX()-Melee_creep1[creep_i-i]->getPositionX());
+            }
+            if(Range_creep1[creep_i-i]!=NULL)
+                dis[i+4]=abs(ai->getPositionX()-Range_creep1[creep_i-i]->getPositionX());
+            if(Catapult1[creep_i-i]!=NULL)
+                dis[i+8]=abs(ai->getPositionX()-Catapult1[creep_i-i]->getPositionX());
+            if(dis[i]<min_dis)
+            {
+                min_dis=dis[i];
+                target=Melee_creep1[creep_i-i];
+            }
+            if(dis[i+4]<min_dis)
+            {
+                min_dis=dis[i];
+                target=Range_creep1[creep_i-i];
+            }
+            if(dis[i+8]<min_dis)
+            {
+                min_dis=dis[i];
+                target=Catapult1[creep_i-i];
+            }
+        }
+        dis[12]=abs(ai->getPositionX()-sprite->getPositionX());
+        dis[13]=abs(ai->getPositionX()-Tower1->getPositionX());
+        dis[14]=abs(ai->getPositionX()-Crystal1->getPositionX());
+        if(dis[12]<min_dis)
+        {
+            min_dis=dis[12];
+            target=sprite;
+        }
+        if(dis[13]<min_dis)
+        {
+            min_dis=dis[13];
+            target=Tower1;
+        }
+        if(dis[14]<min_dis)
+        {
+            min_dis=dis[14];
+            target=Crystal1;
+        }
+
+        if(min_dis<=100)
+        {
+            if(target==sprite)
+                a.hero1.HP-=b.hero1.base_damage;
+            else if(target==Tower1)
+                a.tower.HP-=b.hero1.base_damage;
+            else if(target==Crystal1)
+                a.crystal.HP-=b.hero1.base_damage;
+            else
+            {
+                for(int i=0;i<4;i++)
+                {
+                    if(target==Melee_creep1[creep_i-i])
+                        a.melee.HP[creep_i-i]-=b.hero1.base_damage;
+                    else if(target==Range_creep1[creep_i-i])
+                        a.range.HP[creep_i-i]-=b.hero1.base_damage;
+                    else if(target==Catapult1[creep_i-i])
+                        a.catapult.HP[creep_i-i]-=b.hero1.base_damage;
+                }
+            }
+        }
+        else
+        {
+            auto by=MoveBy::create(1,Vec2(-100,0));
+            ai->runAction(by);
+        }
+    }
+    else if(b.hero1.HP>0)
+    {
+        auto by=MoveBy::create(1,Vec2(Crystal2->getPositionX()+500-ai->getPositionX(),0));
+        ai->runAction(by);
+    }
+    else
+    {
+        this->removeChild(ai);
+        ai=NULL;
+    }
+}
+
 
 void gamescene_houyi::update_heroHP(float t)
 {
@@ -1289,7 +1398,9 @@ void gamescene_houyi::update_heroHP(float t)
         Tower1=NULL;
     }
     if(a.hero1.HP>0)
-        this->getBloodbar(sprite,(1000-a.hero1.HP)/10);
+        this->getBloodbar(sprite,(a.hero1.HP_max-a.hero1.HP)/(a.hero1.HP_max/100));
+    if(b.hero1.HP>0)
+        this->getBloodbar(ai,(b.hero1.HP_max-b.hero1.HP)/(b.hero1.HP_max/100));
     else if(sprite!=NULL)
     {
         this->removeChild(sprite);
@@ -1325,7 +1436,18 @@ void gamescene_houyi::update_heroHP(float t)
                 a.hero1.HP+=a.hero1.HP_max/50;
             else if(a.hero1.HP>a.hero1.HP_max)
                 a.hero1.HP=a.hero1.HP_max;
-            this->getBloodbar1(sprite, (1000-a.hero1.HP)/10);
+            this->getBloodbar1(sprite, (a.hero1.HP_max-a.hero1.HP)/(a.hero1.HP_max/100));
+        }
+    }
+    if(ai!=NULL)
+    {
+        if(ai->getPositionX()>Crystal2->getPositionX()+300)
+        {
+            if(b.hero1.HP<b.hero1.HP_max)
+                b.hero1.HP+=b.hero1.HP_max/50;
+            else if(b.hero1.HP>b.hero1.HP_max)
+                b.hero1.HP=b.hero1.HP_max;
+            this->getBloodbar1(ai, (b.hero1.HP_max-b.hero1.HP)/(b.hero1.HP_max/100));
         }
     }
 }
