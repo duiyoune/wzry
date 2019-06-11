@@ -90,11 +90,13 @@ private:
     Sprite * pBloodKongSp;
     Sprite * cursor;
     Sprite * flag_sprite;
+    Sprite * melee1_target;
+    Sprite * melee2_target;
     Label * label_time;
     Label * label_gold;
+    Label * label_lvl;
 
 public:
-
     int attack_flag=0;
     int tag_flag=5;
     int tag_hero=6;
@@ -109,7 +111,7 @@ public:
     bool flag_tab=false;
     bool hero_attack_target=false;
 private:
-     int getCurrentlvl(int experience_hero);
+     int getCurrentlvl(Sprite *sprite);
 private:
     std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
 //    void update_keyboard(float t);
