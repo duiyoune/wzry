@@ -90,8 +90,10 @@ private:
     Sprite * pBloodKongSp;
     Sprite * cursor;
     Sprite * flag_sprite;
-    Sprite * melee1_target;
-    Sprite * melee2_target;
+    Sprite * melee1_target[4];
+    Sprite * melee2_target[4];
+    Sprite * range1_target[4];
+    Sprite * range2_target[4];
     Label * label_time;
     Label * label_gold;
     Label * label_lvl;

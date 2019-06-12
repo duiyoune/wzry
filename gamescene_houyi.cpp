@@ -210,6 +210,7 @@ void gamescene_houyi::update_creep1(float t)
     auto animate1=Animate::create(animation1);
     Melee_creep1[creep_i]->runAction(animate1);
     
+    
     Melee_creep2[creep_i]=Sprite::create("melee3.png");
     Melee_creep2[creep_i]->setPosition(Crystal2->getPositionX()-50,visibleSize.height/2);
     this->addChild(Melee_creep2[creep_i],2);
@@ -226,9 +227,26 @@ void gamescene_houyi::update_creep1(float t)
     auto animate2=Animate::create(animation2);
     Melee_creep2[creep_i]->runAction(animate2);
     
-    Range_creep1[creep_i]=Sprite::create("小兵.jpg");
+    
+    Range_creep1[creep_i]=Sprite::create("range1.png");
     Range_creep1[creep_i]->setPosition(Crystal1->getPositionX()-50,visibleSize.height/2);
     this->addChild(Range_creep1[creep_i],2);
+    auto *animation3=Animation::create();
+    for(int i = 1; i<9; i++)
+    {
+        auto string=String::createWithFormat("range%d.png",i);
+        auto frame=SpriteFrame::create(string->getCString(),CCRectMake(0, 0, 41, 56));
+        animation3->addSpriteFrame(frame);
+        
+    }
+    animation3->setDelayPerUnit(0.3);
+    animation3->setLoops(-1);
+    auto animate3=Animate::create(animation3);
+    Range_creep1[creep_i]->runAction(animate3);
+    
+    
+    
+    
     
     Catapult1[creep_i]=Sprite::create("小兵.jpg");
     Catapult1[creep_i]->setPosition(Crystal1->getPositionX()-100,visibleSize.height/2);
@@ -690,7 +708,7 @@ void gamescene_houyi::onKeyPressed4(EventKeyboard::KeyCode keyCode, Event* event
 
 void gamescene_houyi::update_Melee_creep1_attack(float t)
 {
-    for(int j=0;j<creep_i;j++)
+    for(int j=std::max(0,creep_i-4);j<creep_i;j++)
     {
         if(a.melee.HP[j]>0)
         {
@@ -712,17 +730,17 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
                 if(dis[i]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee1_target=Melee_creep2[creep_i-i-1];
+                    melee1_target[j]=Melee_creep2[creep_i-i-1];
                 }
                 if(dis[i+4]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee1_target=Range_creep2[creep_i-i-1];
+                    melee1_target[j]=Range_creep2[creep_i-i-1];
                 }
                 if(dis[i+8]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee1_target=Catapult2[creep_i-i-1];
+                    melee1_target[j]=Catapult2[creep_i-i-1];
                 }
             }
             dis[12]=abs(Melee_creep1[j]->getPositionX()-ai->getPositionX());
@@ -731,43 +749,45 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
             if(dis[12]<min_dis)
             {
                 min_dis=dis[12];
-                melee1_target=ai;
+                melee1_target[j]=ai;
             }
             if(dis[13]<min_dis)
             {
                 min_dis=dis[13];
-                melee1_target=Tower2;
+                melee1_target[j]=Tower2;
             }
             if(dis[14]<min_dis)
             {
                 min_dis=dis[14];
-                melee1_target=Crystal2;
+                melee1_target[j]=Crystal2;
             }
-        
+            for(int i=0;i<14;i++)
+                std::cout<<dis[i]<<std::endl;
+            std::cout<<std::endl;
             if(min_dis<=100)
             {
-                if(melee1_target==ai)
+                if(melee1_target[j]==ai)
                     b.hero1.HP-=20;
-                else if(melee1_target==Tower2)
+                else if(melee1_target[j]==Tower2)
                     b.tower.HP-=20;
-                else if(melee1_target==Crystal2)
+                else if(melee1_target[j]==Crystal2)
                     b.crystal.HP-=20;
                 else
                 {
                     for(int i=0;i<4;i++)
                     {
-                        if(melee1_target==Melee_creep2[creep_i-i])
-                            b.melee.HP[creep_i-i]-=20;
-                        else if(melee1_target==Range_creep2[creep_i-i])
-                            b.range.HP[creep_i-i]-=20;
-                        else if(melee1_target==Catapult2[creep_i-i])
-                            b.catapult.HP[creep_i-i]-=20;
+                        if(melee1_target[j]==Melee_creep2[creep_i-i-1])
+                            b.melee.HP[creep_i-i-1]-=20;
+                        else if(melee1_target[j]==Range_creep2[creep_i-i-1])
+                            b.range.HP[creep_i-i-1]-=20;
+                        else if(melee1_target[j]==Catapult2[creep_i-i-1])
+                            b.catapult.HP[creep_i-i-1]-=20;
                     }
                 }
             }
             else
             {
-                int X=melee1_target->getPositionX()-Melee_creep1[j]->getPositionX();
+                int X=melee1_target[j]->getPositionX()-Melee_creep1[j]->getPositionX();
                 auto by=MoveBy::create(1,Vec2(std::min(X,100),0));
                 Melee_creep1[creep_i-1]->runAction(by);
 //                this->schedule(schedule_selector(gamescene_houyi::boundingbox_update),0.1);
@@ -781,13 +801,8 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
       
         if(a.melee.HP[j]>0)
             this->getBloodbar(Melee_creep1[j],(200-a.melee.HP[j])/2);
-        if(b.melee.HP[j]>0)
-            this->getBloodbar(Melee_creep2[j],(200-b.melee.HP[j])/2);
-        if(a.range.HP[j]>0)
-            this->getBloodbar(Range_creep1[j],100-a.range.HP[j]);
-        if(b.range.HP[j]>0)
-            this->getBloodbar(Range_creep2[j],100-b.range.HP[j]);
-        
+
+
         
         
         if(b.melee.HP[j]<=0)
@@ -810,7 +825,7 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
 
 void gamescene_houyi::update_Melee_creep2_attack(float t)
 {
-    for(int j=0;j<creep_i;j++)
+    for(int j=std::max(0,creep_i-4);j<creep_i;j++)
     {
         if(b.melee.HP[j]>0)
         {
@@ -832,17 +847,17 @@ void gamescene_houyi::update_Melee_creep2_attack(float t)
                 if(dis[i]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee2_target=Melee_creep1[creep_i-i-1];
+                    melee2_target[j]=Melee_creep1[creep_i-i-1];
                 }
                 if(dis[i+4]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee2_target=Range_creep1[creep_i-i-1];
+                    melee2_target[j]=Range_creep1[creep_i-i-1];
                 }
                 if(dis[i+8]<min_dis)
                 {
                     min_dis=dis[i];
-                    melee2_target=Catapult1[creep_i-i-1];
+                    melee2_target[j]=Catapult1[creep_i-i-1];
                 }
             }
             dis[12]=abs(Melee_creep2[j]->getPositionX()-sprite->getPositionX());
@@ -851,43 +866,43 @@ void gamescene_houyi::update_Melee_creep2_attack(float t)
             if(dis[12]<min_dis)
             {
                 min_dis=dis[12];
-                melee2_target=sprite;
+                melee2_target[j]=sprite;
             }
             if(dis[13]<min_dis)
             {
                 min_dis=dis[13];
-                melee2_target=Tower1;
+                melee2_target[j]=Tower1;
             }
             if(dis[14]<min_dis)
             {
                 min_dis=dis[14];
-                melee2_target=Crystal1;
+                melee2_target[j]=Crystal1;
             }
             
             if(min_dis<=100)
             {
-                if(melee2_target==sprite)
+                if(melee2_target[j]==sprite)
                     a.hero1.HP-=20;
-                else if(melee2_target==Tower1)
+                else if(melee2_target[j]==Tower1)
                     a.tower.HP-=20;
-                else if(melee2_target==Crystal1)
+                else if(melee2_target[j]==Crystal1)
                     a.crystal.HP-=20;
                 else
                 {
                     for(int i=0;i<4;i++)
                     {
-                        if(melee2_target==Melee_creep1[creep_i-i])
-                            a.melee.HP[creep_i-i]-=20;
-                        else if(melee2_target==Range_creep1[creep_i-i])
-                            a.range.HP[creep_i-i]-=20;
-                        else if(melee2_target==Catapult1[creep_i-i])
-                            a.catapult.HP[creep_i-i]-=20;
+                        if(melee2_target[j]==Melee_creep1[creep_i-i-1])
+                            a.melee.HP[creep_i-i-1]-=20;
+                        else if(melee2_target[j]==Range_creep1[creep_i-i-1])
+                            a.range.HP[creep_i-i-1]-=20;
+                        else if(melee2_target[j]==Catapult1[creep_i-i-1])
+                            a.catapult.HP[creep_i-i-1]-=20;
                     }
                 }
             }
             else
             {
-                int X=melee2_target->getPositionX()-Melee_creep2[j]->getPositionX();
+                int X=melee2_target[j]->getPositionX()-Melee_creep2[j]->getPositionX();
                 auto by=MoveBy::create(1,Vec2(-std::min(-X,100),0));
                 Melee_creep2[creep_i-1]->runAction(by);
                 //                this->schedule(schedule_selector(gamescene_houyi::boundingbox_update),0.1);
@@ -898,134 +913,102 @@ void gamescene_houyi::update_Melee_creep2_attack(float t)
     
     for(int j=0;j<creep_i;j++)
     {
-        
-        if(a.melee.HP[j]>0)
-            this->getBloodbar(Melee_creep1[j],(200-a.melee.HP[j])/2);
         if(b.melee.HP[j]>0)
             this->getBloodbar(Melee_creep2[j],(200-b.melee.HP[j])/2);
-        if(a.range.HP[j]>0)
-            this->getBloodbar(Range_creep1[j],100-a.range.HP[j]);
-        if(b.range.HP[j]>0)
-            this->getBloodbar(Range_creep2[j],100-b.range.HP[j]);
-        
-        
-        
-        if(b.melee.HP[j]<=0)
-        {
-            this->removeChild(Melee_creep2[j]);
-            Melee_creep2[j]=NULL;
-            a.hero1.gold+=20;
-            a.hero1.exp+=10;
-        }
-        if(b.range.HP[j]<=0)
-        {
-            this->removeChild(Range_creep2[j]);
-            Range_creep2[j]=NULL;
-            a.hero1.gold+=50;
-            a.hero1.exp+=15;
-            
-        }
     }
 }
 
 void gamescene_houyi::update_Range_creep1_attack(float t)
 {
-    for(int j=0;j<creep_i;j++)
+    for(int j=std::max(0,creep_i-4);j<creep_i;j++)
     {
-        int X[5],Y[5],dis[5];
-        for(int i=0;i<5;i++)
-        {
-            X[i]=100000;
-            Y[i]=100000;
-            dis[i]=1000000000;
-        }
         if(a.range.HP[j]>0)
         {
-            if(b.melee.HP[j]>0)
+            int dis[15];
+            int min_dis=100000;
+            int flag=std::min(4,creep_i);
+            for(int i=0;i<15;i++)
+                dis[i]=10000;
+            for(int i=0;i<flag;i++)
             {
-                X[0]=-Range_creep1[j]->getPositionX()+Melee_creep2[j]->getPositionX();
-                Y[0]=-Range_creep1[j]->getPositionY()+Melee_creep2[j]->getPositionY();
-                dis[0]=X[0]*X[0]+Y[0]*Y[0];
-            }
-            if(b.crystal.HP>0)
-            {
-                X[1]=-Range_creep1[j]->getPositionX()+Crystal2->getPositionX();
-                Y[1]=-Range_creep1[j]->getPositionY()+Crystal2->getPositionY();
-                dis[1]=X[1]*X[1]+Y[1]*Y[1];
-            }
-            if(b.tower.HP>0)
-            {
-                X[2]=-Range_creep1[j]->getPositionX()+Tower2->getPositionX();
-                Y[2]=-Range_creep1[j]->getPositionY()+Tower2->getPositionY();
-                dis[2]=X[2]*X[2]+Y[2]*Y[2];
-            }
-            if(b.range.HP[j]>0)
-            {
-                X[3]=-Range_creep1[j]->getPositionX()+Range_creep2[j]->getPositionX();
-                Y[3]=-Range_creep1[j]->getPositionY()+Range_creep2[j]->getPositionY();
-                dis[3]=X[3]*X[3]+Y[3]*Y[3];
-            }
-            
-            int min_dis=1000000000;
-            for(int i=0;i<5;i++)
-            {
+                if(b.melee.HP[creep_i-i-1]>0)
+                {
+                    dis[i]=abs(Melee_creep2[creep_i-i-1]->getPositionX()-Range_creep1[j]->getPositionX());
+                }
+                if(b.range.HP[creep_i-i-1]>0)
+                    dis[i+4]=abs(Range_creep2[creep_i-i-1]->getPositionX()-Range_creep1[j]->getPositionX());
+                if(b.catapult.HP[creep_i-i-1]>0)
+                    dis[i+8]=abs(Catapult2[creep_i-i-1]->getPositionX()-Range_creep1[j]->getPositionX());
                 if(dis[i]<min_dis)
+                {
                     min_dis=dis[i];
+                    range1_target[j]=Melee_creep2[creep_i-i-1];
+                }
+                if(dis[i+4]<min_dis)
+                {
+                    min_dis=dis[i];
+                    range1_target[j]=Range_creep2[creep_i-i-1];
+                }
+                if(dis[i+8]<min_dis)
+                {
+                    min_dis=dis[i];
+                    range1_target[j]=Catapult2[creep_i-i-1];
+                }
             }
-            double time=sqrt(min_dis)/100;
-            
-            
-            if(min_dis<=90000)
+            dis[12]=abs(Range_creep1[j]->getPositionX()-ai->getPositionX());
+            dis[13]=abs(Range_creep1[j]->getPositionX()-Tower2->getPositionX());
+            dis[14]=abs(Range_creep1[j]->getPositionX()-Crystal2->getPositionX());
+            if(dis[12]<min_dis)
             {
-                if(min_dis==dis[0])
-                    b.melee.HP[j]-=20;
-                else if(min_dis==dis[1])
-                    b.crystal.HP-=20;
-                else if(min_dis==dis[2])
+                min_dis=dis[12];
+                range1_target[j]=ai;
+            }
+            if(dis[13]<min_dis)
+            {
+                min_dis=dis[13];
+                range1_target[j]=Tower2;
+            }
+            if(dis[14]<min_dis)
+            {
+                min_dis=dis[14];
+                range1_target[j]=Crystal2;
+            }
+            
+            if(min_dis<=400)
+            {
+                if(range1_target[j]==ai)
+                    b.hero1.HP-=20;
+                else if(range1_target[j]==Tower2)
                     b.tower.HP-=20;
+                else if(range1_target[j]==Crystal2)
+                    b.crystal.HP-=20;
                 else
-                    b.range.HP[j]-=20;
+                {
+                    for(int i=0;i<4;i++)
+                    {
+                        if(range1_target[j]==Melee_creep2[creep_i-i-1])
+                            b.melee.HP[creep_i-i-1]-=20;
+                        else if(range1_target[j]==Range_creep2[creep_i-i-1])
+                            b.range.HP[creep_i-i-1]-=20;
+                        else if(range1_target[j]==Catapult2[creep_i-i-1])
+                            b.catapult.HP[creep_i-i-1]-=20;
+                    }
+                }
             }
             else
             {
-                if(min_dis==dis[0])
-                {
-                    auto by=MoveBy::create(1, Vec2((abs(X[0])-300)/time,abs(Y[0])/time));
-                    Range_creep1[j]->runAction(by);
-                    
-                }
-                else if(min_dis==dis[1])
-                {
-                    auto by=MoveBy::create(1, Vec2((abs(X[1])-300)/time,abs(Y[1])/time));
-                    Range_creep1[j]->runAction(by);
-                }
-                else if(min_dis==dis[2])
-                {
-                    auto by=MoveBy::create(1, Vec2((abs(X[2])-300)/time,abs(Y[2])/time));
-                    Range_creep1[j]->runAction(by);
-                }
-                else if(min_dis==dis[3])
-                {
-                    auto by=MoveBy::create(1, Vec2((abs(X[3])-300)/time,abs(Y[3])/time));
-                    Range_creep1[j]->runAction(by);
-                }
+                int X=range1_target[j]->getPositionX()-Range_creep1[j]->getPositionX();
+                auto by=MoveBy::create(1,Vec2(std::min(X,100),0));
+                Range_creep1[creep_i-1]->runAction(by);
             }
         }
-        
-        if(b.melee.HP[j]<=0 && Melee_creep2[j]!=NULL)
-        {
-            this->removeChild(Melee_creep2[j]);
-            Melee_creep2[j]=NULL;
-            a.hero1.gold+=20;
-            a.hero1.exp+=10;
-        }
-        if(b.range.HP[j]<=0 && Range_creep2[j]!=NULL)
-        {
-            this->removeChild(Range_creep2[j]);
-            Range_creep2[j]=NULL;
-            a.hero1.gold+=50;
-            a.hero1.exp+=15;
-        }
+    }
+    
+    
+    for(int j=0;j<creep_i;j++)
+    {
+        if(a.range.HP[j]>0)
+            this->getBloodbar(Range_creep1[j],100-a.range.HP[j]);
     }
 }
 
@@ -1142,7 +1125,7 @@ void gamescene_houyi::update_tower1_attack(float t)
             {
                 dis_Melee_creep=abs(Tower1->getPositionX()-Melee_creep2[j]->getPositionX());
                 
-                if(dis_Melee_creep<500)
+                if(dis_Melee_creep<300)
                 {
                     pb=Sprite::create("PB01.png");
                     pb->setPosition(Tower1->getPositionX(),Tower1->getPositionY()+50);
@@ -1157,7 +1140,7 @@ void gamescene_houyi::update_tower1_attack(float t)
             else if(b.range.HP[j]>0)
             {
                 dis_Melee_creep=abs(Tower1->getPositionX()-Range_creep2[j]->getPositionX());
-                if(dis_Melee_creep<500)
+                if(dis_Melee_creep<300)
                 {
                     pb=Sprite::create("PB01.png");
                     pb->setPosition(Tower1->getPositionX(),Tower1->getPositionY()+50);
@@ -1172,7 +1155,7 @@ void gamescene_houyi::update_tower1_attack(float t)
             else if(b.catapult.HP[j]>0)
             {
                 dis_Melee_creep=abs(Tower1->getPositionX() -Catapult2[j]->getPositionX());
-                if(dis_Melee_creep<500)
+                if(dis_Melee_creep<300)
                 {
                     pb=Sprite::create("PB01.png");
                     pb->setPosition(Tower1->getPositionX(),Tower1->getPositionY()+50);
@@ -1227,7 +1210,7 @@ void gamescene_houyi::update_tower2_attack(float t)
                 {
                     
                     dis_Melee_creep=abs(Melee_creep1[j]->getPositionX()-Tower2->getPositionX());
-                    if(dis_Melee_creep<500)
+                    if(dis_Melee_creep<300)
                     {
                         attack_flag=true;
                         pb=Sprite::create("PB01.png");
@@ -1243,7 +1226,7 @@ void gamescene_houyi::update_tower2_attack(float t)
                 if(a.range.HP[j]>0 && attack_flag==false)
                 {
                     dis_Range_creep=abs(Range_creep1[j]->getPositionX()-Tower2->getPositionX());
-                    if(dis_Range_creep<500)
+                    if(dis_Range_creep<300)
                     {
                         attack_flag=true;
                         pb=Sprite::create("PB01.png");
@@ -1259,7 +1242,7 @@ void gamescene_houyi::update_tower2_attack(float t)
                 if(a.catapult.HP[j]>0 && attack_flag==false)
                 {
                     dis_Catapult=abs(Tower2->getPositionX()-Catapult1[j]->getPositionX());
-                    if(dis_Catapult<500)
+                    if(dis_Catapult<300)
                     {
                         attack_flag=true;
                         pb=Sprite::create("PB01.png");
@@ -1275,7 +1258,7 @@ void gamescene_houyi::update_tower2_attack(float t)
                 if(a.hero1.HP>0 && attack_flag==false)
                 {
                     dis_hero=abs(Tower2->getPositionX()-sprite->getPositionX());
-                    if(dis_hero<500)
+                    if(dis_hero<300)
                     {
                         attack_flag=true;
                         pb=Sprite::create("PB01.png");
@@ -1292,7 +1275,7 @@ void gamescene_houyi::update_tower2_attack(float t)
         if(a.hero1.HP>0 && attack_flag==false)
         {
             dis_hero=abs(Tower2->getPositionX()-sprite->getPositionX());
-            if(dis_hero<500)
+            if(dis_hero<300)
             {
                 attack_flag=true;
                 pb=Sprite::create("PB01.png");
@@ -1371,28 +1354,28 @@ void gamescene_houyi::update_ai(float t)
             dis[i]=10000;
         for(int i=0;i<flag;i++)
         {
-            if(Melee_creep1[creep_i-i]!=NULL)
+            if(Melee_creep1[creep_i-i-1]!=NULL)
             {
-                dis[i]=abs(ai->getPositionX()-Melee_creep1[creep_i-i]->getPositionX());
+                dis[i]=abs(ai->getPositionX()-Melee_creep1[creep_i-i-1]->getPositionX());
             }
-            if(Range_creep1[creep_i-i]!=NULL)
-                dis[i+4]=abs(ai->getPositionX()-Range_creep1[creep_i-i]->getPositionX());
-            if(Catapult1[creep_i-i]!=NULL)
-                dis[i+8]=abs(ai->getPositionX()-Catapult1[creep_i-i]->getPositionX());
+            if(Range_creep1[creep_i-i-1]!=NULL)
+                dis[i+4]=abs(ai->getPositionX()-Range_creep1[creep_i-i-1]->getPositionX());
+            if(Catapult1[creep_i-i-1]!=NULL)
+                dis[i+8]=abs(ai->getPositionX()-Catapult1[creep_i-i-1]->getPositionX());
             if(dis[i]<min_dis)
             {
                 min_dis=dis[i];
-                target=Melee_creep1[creep_i-i];
+                target=Melee_creep1[creep_i-i-1];
             }
             if(dis[i+4]<min_dis)
             {
                 min_dis=dis[i];
-                target=Range_creep1[creep_i-i];
+                target=Range_creep1[creep_i-i-1];
             }
             if(dis[i+8]<min_dis)
             {
                 min_dis=dis[i];
-                target=Catapult1[creep_i-i];
+                target=Catapult1[creep_i-i-1];
             }
         }
         dis[12]=abs(ai->getPositionX()-sprite->getPositionX());
@@ -1426,12 +1409,12 @@ void gamescene_houyi::update_ai(float t)
             {
                 for(int i=0;i<4;i++)
                 {
-                    if(target==Melee_creep1[creep_i-i])
-                        a.melee.HP[creep_i-i]-=b.hero1.base_damage;
-                    else if(target==Range_creep1[creep_i-i])
-                        a.range.HP[creep_i-i]-=b.hero1.base_damage;
-                    else if(target==Catapult1[creep_i-i])
-                        a.catapult.HP[creep_i-i]-=b.hero1.base_damage;
+                    if(target==Melee_creep1[creep_i-i-1])
+                        a.melee.HP[creep_i-i-1]-=b.hero1.base_damage;
+                    else if(target==Range_creep1[creep_i-i-1])
+                        a.range.HP[creep_i-i-1]-=b.hero1.base_damage;
+                    else if(target==Catapult1[creep_i-i-1])
+                        a.catapult.HP[creep_i-i-1]-=b.hero1.base_damage;
                 }
             }
         }
@@ -1443,7 +1426,9 @@ void gamescene_houyi::update_ai(float t)
     }
     else if(b.hero1.HP>0)
     {
-        auto by=MoveBy::create(1,Vec2(Crystal2->getPositionX()+500-ai->getPositionX(),0));
+        int x=Crystal2->getPositionX()+500-ai->getPositionX();
+        int X=std::min(x,100);
+        auto by=MoveBy::create(1,Vec2(X,0));
         ai->runAction(by);
     }
     else
@@ -1588,14 +1573,14 @@ void gamescene_houyi::boundingbox_update1(float t)
 
 void gamescene_houyi::boundingbox_update(float t)
 {
-    if(Melee_creep1[melee1_j]!=NULL)
-    {
-        if(melee1_target!=NULL)
-        {
-            if(Melee_creep1[melee1_j]->boundingBox().intersectsRect(melee1_target->boundingBox()))
-                Melee_creep1[melee1_j]->stopAllActions();
-        }
-    }
+//    if(Melee_creep1[melee1_j]!=NULL)
+//    {
+//        if(melee1_target!=NULL)
+//        {
+//            if(Melee_creep1[melee1_j]->boundingBox().intersectsRect(melee1_target->boundingBox()))
+//                Melee_creep1[melee1_j]->stopAllActions();
+//        }
+//    }
 }
 void gamescene_houyi::boundingbox_update2(float t)
 {
