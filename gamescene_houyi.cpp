@@ -42,6 +42,10 @@ bool gamescene_houyi::init()
     
     auto visibleSize = Director::getInstance()->getVisibleSize();
     
+    //背景音乐
+	auto BGM = SimpleAudioEngine::getInstance();//背景音乐
+	BGM->playBackgroundMusic("bgm.mp3", true);
+	
     for(int i=0;i<600;i++)
     {
         Melee_creep1[i]=NULL;
