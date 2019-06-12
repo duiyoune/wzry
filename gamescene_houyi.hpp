@@ -28,6 +28,7 @@ public:
 class gamescene_houyi:public Layer
 {
 public:
+
     int time;
     int time_tolive;
     bool flag_creep;
@@ -50,14 +51,16 @@ private:
     void update_Melee_creep1_attack(float t);
     void update_Range_creep1_attack(float t);
     void update_Catapult1_attack(float t);
+    void update_Melee_creep2_attack(float t);
+    void update_Range_creep2_attack(float t);
+    void update_Catapult2_attack(float t);
+    
     void update_tower1_attack(float t);
     void update_heroHP(float t);
     void update_time(float t);
     void update_ai(float t);
     void clickCreep_enemy(float X, float Y);
-    void update_Melee_creep2_attack(float t);
-    void update_Range_creep2_attack(float t);
-    void update_Catapult2_attack(float t);
+
     void update_tower2_attack(float t);
     void boundingbox_update(float t);
     void boundingbox_update1(float t);
@@ -97,12 +100,11 @@ private:
     Label * label_time;
     Label * label_gold;
     Label * label_lvl;
+    Label * label_damage;
+    Label * label_hp;
 
 public:
     int attack_flag=0;
-    int tag_flag=5;
-    int tag_hero=6;
-    int tag_layer=7;
     int experience_hero1=0;
     int experience_hero2=0;
     int creep_i=0;
@@ -110,7 +112,6 @@ public:
     int melee1_j;
     int melee2_j;
     bool hero_attack=false;
-    bool flag_tab=false;
     bool hero_attack_target=false;
 private:
      int getCurrentlvl(Sprite *sprite);
