@@ -52,19 +52,22 @@ void scene1::onMenuItem1(Ref *obj)
     Scene* scene=scene::gamescene();
     auto transitionscene=TransitionFade::create(2, scene);
     Director::getInstance()->replaceScene(transitionscene);
+	NOhero = 1;
 }
 
 void scene1::onMenuItem2(Ref *obj)
 {
-    Scene* scene=gamescene_daji::scene();
+    Scene* scene= scene::gamescene();
     auto transitionscene=TransitionFade::create(2, scene);
     Director::getInstance()->replaceScene(transitionscene);
+	NOhero = 2;
 }
 
 void scene1::onMenuItem3(Ref *obj)
 {
-    Scene* scene=gamescene_yase::scene();
+    Scene* scene= scene::gamescene();
     auto transitionscene=TransitionFade::create(2, scene);
     Director::getInstance()->replaceScene(transitionscene);
+	NOhero = 3;
 }
 

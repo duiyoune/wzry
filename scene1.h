@@ -18,6 +18,8 @@ public:
     virtual bool init();
     static Scene* scene();
     CREATE_FUNC(scene1);
+public:
+	int NOhero = 0;//哪一个英雄
 private:
     void  onMenuItem1(Ref * obj);
     void  onMenuItem2(Ref * obj);

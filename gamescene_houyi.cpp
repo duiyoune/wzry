@@ -10,14 +10,18 @@
 #include <math.h>
 #include "attr_init.hpp"
 #include "attack_logic.hpp"
+#include "SimpleAudioEngine.h"
+
+using namespace CocosDenshion;
+USING_NS_CC;
 
 Layer *layer_game;
 Layer *layer_set;
-Sprite * flag;
+Sprite * bug;
 Sprite * store;
+bool flag_tab=false;
 attr a;
 attr b;
-bool flag_tab=false;
 
 Scene*scene::gamescene()
 {
@@ -30,7 +34,6 @@ Scene*scene::gamescene()
     
 }
 
-
 bool gamescene_houyi::init()
 {
     if(!Layer::init())
@@ -42,91 +45,61 @@ bool gamescene_houyi::init()
 
     
     auto visibleSize = Director::getInstance()->getVisibleSize();
-    
-    for(int i=0;i<600;i++)
-    {
-        Melee_creep1[i]=NULL;
-        Melee_creep2[i]=NULL;
-        Range_creep1[i]=NULL;
-        Range_creep2[i]=NULL;
-        Catapult1[i]=NULL;
-        Catapult2[i]=NULL;
-    }
-
+    //背景音乐
+    auto BGM = SimpleAudioEngine::getInstance();
+    BGM->playBackgroundMusic("bgm.mp3", true);
 
     a.init();
     b.init();
     flag_creep=false;
-
-
-    
-    
+	//地图
+	auto map = Sprite::create("map.png");
+	this->addChild(map,0);
+	map->setPosition(2100, visibleSize.height / 2);
+    //英雄
     sprite=Sprite::create("npc1_553-1.png");
     sprite->setPosition(visibleSize.width/2,visibleSize.height/2);
     this->addChild(sprite,4);
     flag_heroalive=true;
-
-    
+    //ai
     ai=Sprite::create("HelloWorld.png");
     ai->setPosition(3500,visibleSize.height/2);
     ai->setScale(0.5);
     this->addChild(ai,4);
     flag_aialive=true;
-    
-    
-    auto listener= EventListenerMouse::create();
-    listener->onMouseDown=CC_CALLBACK_1(gamescene_houyi::onMouseMove, this);
-    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-    
-//    auto to=MoveTo::create(2, Vec2(500,visibleSize.height/2));
-//    sprite->runAction(to);
-    
-    SpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile("tower-0001-default.plist");
-    
-    auto frame_tower1=SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("tower1.jpg");
-    Tower1=Sprite::createWithSpriteFrame(frame_tower1);
-    Tower1->setPosition(1700,visibleSize.height/2);
-    this->addChild(Tower1,1);
-    
-    auto frame_tower2=SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("tower2.jpg");
-    Tower2=Sprite::createWithSpriteFrame(frame_tower2);
-    Tower2->setPosition(2500,visibleSize.height/2);
-    this->addChild(Tower2,1);
+	//塔
 
-    
+	SpriteFrameCache::sharedSpriteFrameCache()->addSpriteFramesWithFile("tower-0001-default.plist");
+
+	auto frame_tower1 = SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("tower1.jpg");
+	Tower1 = Sprite::createWithSpriteFrame(frame_tower1);
+	Tower1->setPosition(1700, visibleSize.height / 2);
+	this->addChild(Tower1, 1);
+
+	auto frame_tower2 = SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("tower2.jpg");
+	Tower2 = Sprite::createWithSpriteFrame(frame_tower2);
+	Tower2->setPosition(2500, visibleSize.height / 2);
+	this->addChild(Tower2, 1);
+	//基地
     auto frame_crystal1=SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("crystal1.jpg");
     Crystal1=Sprite::createWithSpriteFrame(frame_crystal1);
     Crystal1->setPosition(800,visibleSize.height/2);
     this->addChild(Crystal1,1);
     
-    
     auto frame_crystal2=SpriteFrameCache::sharedSpriteFrameCache()->getSpriteFrameByName("crystal2.jpg");
     Crystal2=Sprite::createWithSpriteFrame(frame_crystal2);
     Crystal2->setPosition(3300,visibleSize.height/2);
-    this->addChild(Crystal2,1);
+    this->addChild(Crystal2,1);   
+//监听器	
+	auto listener = EventListenerMouse::create();
+	listener->onMouseDown = CC_CALLBACK_1(gamescene_houyi::onMouseDown, this);
+	listener->onMouseMove = CC_CALLBACK_1(gamescene_houyi::onMouseMove, this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    
-
-
-    
-
-    
-    
-    
     auto listener1= EventListenerMouse::create();
     listener1->onMouseMove=CC_CALLBACK_1(gamescene_houyi::onMouseMove1,this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener1, this);
-    
-//    auto listener2 = EventListenerKeyboard::create();
-//    listener2->onKeyPressed = [=](EventKeyboard::KeyCode keyCode, Event* event)
-//    {
-//        keys[keyCode] = true;
-//    };
-//    listener2->onKeyReleased = [=](EventKeyboard::KeyCode keyCode, Event* event){
-//        keys[keyCode] = false;
-//    };
-//    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener2, this);
-    
+ 
     auto listener3 = EventListenerKeyboard::create();
     listener3->onKeyPressed = CC_CALLBACK_2(gamescene_houyi::onKeyPressed, this);
     listener3->onKeyReleased = CC_CALLBACK_2(gamescene_houyi::onKeyReleased, this);
@@ -137,24 +110,13 @@ bool gamescene_houyi::init()
     listener4->onKeyReleased = CC_CALLBACK_2(gamescene_houyi::onKeyReleased, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener4, this);
 
-    
-    
-//    this->schedule(schedule_selector(gamescene_houyi::update_keyboard),0.1);
-    
-    
-
-
     this->schedule(schedule_selector(gamescene_houyi::update_time),1);
-    
-    
+    //出兵
     this->schedule(schedule_selector(gamescene_houyi::update_creep1),15);
     this->schedule(schedule_selector(gamescene_houyi::update_heroHP), 0.1f);
-
-    
-    
+	//塔攻击
     this->schedule(schedule_selector(gamescene_houyi::update_tower2_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_tower1_attack),1);
-    
     
     return true;
 }
@@ -170,8 +132,10 @@ bool set::init()
 //    equipment->setPosition(visibleSize.width/2+200,50);
 //    this->addChild(equipment);
 //
-    flag=Sprite::create("equipment.png");
-    flag->setPosition(0,0);
+	bug =Sprite::create("equipment.png");
+	bug->setPosition(0,0);
+	this->addChild(bug);
+	bug->setVisible(false);
     
     store=Sprite::create("store.png");
     store->setScale(2);
@@ -185,15 +149,11 @@ bool set::init()
     
     return true;
 }
-
-
-
+//出兵
 void gamescene_houyi::update_creep1(float t)
 {
-
     auto visibleSize = Director::getInstance()->getVisibleSize();
     flag_creep=true;
-    
     
     Melee_creep1[creep_i]=Sprite::create("melee1.png");
     Melee_creep1[creep_i]->setPosition(Crystal1->getPositionX()+50,visibleSize.height/2);
@@ -211,7 +171,6 @@ void gamescene_houyi::update_creep1(float t)
     auto animate1=Animate::create(animation1);
     Melee_creep1[creep_i]->runAction(animate1);
     
-    
     Melee_creep2[creep_i]=Sprite::create("melee3.png");
     Melee_creep2[creep_i]->setPosition(Crystal2->getPositionX()-50,visibleSize.height/2);
     this->addChild(Melee_creep2[creep_i],2);
@@ -227,7 +186,6 @@ void gamescene_houyi::update_creep1(float t)
     animation2->setLoops(-1);
     auto animate2=Animate::create(animation2);
     Melee_creep2[creep_i]->runAction(animate2);
-    
     
     Range_creep1[creep_i]=Sprite::create("range1.png");
     Range_creep1[creep_i]->setPosition(Crystal1->getPositionX()-50,visibleSize.height/2);
@@ -261,18 +219,10 @@ void gamescene_houyi::update_creep1(float t)
     auto animate4=Animate::create(animation4);
     Range_creep2[creep_i]->runAction(animate4);
     
-    
-    
-    
     Catapult1[creep_i]=Sprite::create("catapult1.png");
     Catapult1[creep_i]->setPosition(Crystal1->getPositionX()-100,visibleSize.height/2);
     this->addChild(Catapult1[creep_i],2);
 
-    
-
-    
-
-    
     Catapult2[creep_i]=Sprite::create("catapult2.png");
     Catapult2[creep_i]->setPosition(Crystal2->getPositionX()+100,visibleSize.height/2);
     this->addChild(Catapult2[creep_i],2);
@@ -281,41 +231,34 @@ void gamescene_houyi::update_creep1(float t)
     b.init_creep(creep_i);
 
     creep_i++;
-    
-
+ 
     this->schedule(schedule_selector(gamescene_houyi::update_Melee_creep1_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Melee_creep2_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Range_creep1_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Range_creep2_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Catapult1_attack),1);
     this->schedule(schedule_selector(gamescene_houyi::update_Catapult2_attack),1);
-
     
     this->schedule(schedule_selector(gamescene_houyi::update_ai),1);
 
 }
-
-
-
-
-
-
-
-void gamescene_houyi::onMouseMove(Event *event)
+//鼠标按下
+void gamescene_houyi::onMouseDown(Event *event)
 {
+	//移动
     if(sprite!=NULL && flag_tab==false)
     {
         auto e=(EventMouse *)event;
         int X=e->getCursorX()-512;
         int Y=e->getCursorY()-sprite->getPositionY();
         double dis=sqrt(X*X+Y*Y);
-        auto by1=MoveBy::create(dis/200,Vec2(-X,0));
+        auto by1=MoveBy::create(dis/ a.hero1.MoveSpeed,Vec2(-X,0));
         by1->setTag(7);
         layer_game->stopActionByTag(7);
         layer_game->resume();
         layer_game->runAction(by1);
 
-        auto by2=MoveBy::create(dis/200,Vec2(X,Y));
+        auto by2=MoveBy::create(dis/ a.hero1.MoveSpeed,Vec2(X,Y));
         by2->setTag(6);
         sprite->stopActionByTag(6);
         sprite->resume();
@@ -337,16 +280,38 @@ void gamescene_houyi::onMouseMove(Event *event)
         sprite->resume();
         sprite->runAction(animate);
 
-        auto by3=MoveBy::create(dis/200,Vec2(X,Y));
+        auto by3=MoveBy::create(dis/ a.hero1.MoveSpeed,Vec2(X,Y));
         by3->setTag(5);
-        flag->stopActionByTag(5);
-        flag->resume();
-        flag->runAction(by3);
+		bug->stopActionByTag(5);
+		bug->resume();
+		bug->runAction(by3);
 
-        
-        clickCreep_enemy(e->getCursorX()+flag->getPositionX(),e->getCursorY());
-        
+        clickCreep_enemy(e->getCursorX()+ bug->getPositionX(),e->getCursorY());        
     }
+	EventMouse* e = (EventMouse*)event;
+	//获取鼠标点击位置
+	float cursorX = e->getCursorX() + bug->getPositionX() ;
+	float cursorY = e->getCursorY();
+	//获取技能3目标
+	if (ability3Clicked == true || ability3MovingToMelee == true || ability3MovingToAI == true || ability3MovingToRange == true || ability3MovingToSiege == true)
+	{
+		//判断技能3是否作用于敌方单位
+		ability3Hit(cursorX, cursorY);
+		return;
+	}
+}
+//鼠标移动
+void gamescene_houyi::onMouseMove(Event *event)
+{
+	EventMouse* e = (EventMouse*)event;
+	//获取鼠标点击位置
+	float cursorX = e->getCursorX() + bug->getPositionX();
+	float cursorY = e->getCursorY();
+	//技能3光标随鼠标移动
+	if (ability3Clicked == true)
+	{
+		ability3Cursor(cursorX, cursorY);
+	}
 }
 
 void gamescene_houyi::onMouseMove1(Event *event)
@@ -357,154 +322,217 @@ void gamescene_houyi::onMouseMove1(Event *event)
         if (cursor!= nullptr)
         {
             cursor->removeFromParent();
-            //cursor->setPosition(-1000,-1000);
         }
         cursor=Sprite::create("cursor.png");
-        cursor->setPosition(e->getCursorX()+flag->getPositionX()-60,e->getCursorY());
+        cursor->setPosition(e->getCursorX()+ bug->getPositionX()-60,e->getCursorY());
         this->addChild(cursor);
-    }
-        
-        
+    }    
 }
 
 void set::onMouseDown(Event *event)
 {
     auto e=(EventMouse *)event;
-    if(equip_number<5)
-    {
-        if(e->getCursorX()>0&&e->getCursorX()<80&&e->getCursorY()>550&&e->getCursorY()<620)
-        {
-            if(a.hero1.gold>200)
-            {
-                a.hero1.gold-=200;
-                equip_number++;
-                auto att20=Sprite::create("20att.png");
-                att20->setScale(2);
-                att20->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(att20,10);
-                a.hero1.base_damage+=20;
-            }
-        }
-        if(e->getCursorX()>0&&e->getCursorX()<80&&e->getCursorY()>450&&e->getCursorY()<500)
-        {
-            if(a.hero1.gold>1000)
-            {
-                a.hero1.gold-=1000;
-                equip_number++;
-                auto att50=Sprite::create("50att.png");
-                att50->setScale(2);
-                att50->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(att50,10);
-                a.hero1.base_damage+=50;
-            }
-        }
-        if(e->getCursorX()>0&&e->getCursorX()<80&&e->getCursorY()>320&&e->getCursorY()<380)
-        {
-            if(a.hero1.gold>2000)
-            {
-                a.hero1.gold-=2000;
-                equip_number++;
-                auto att100=Sprite::create("100att.png");
-                att100->setScale(2);
-                att100->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(att100,10);
-                a.hero1.base_damage+=100;
-            }
-        }
-        if(e->getCursorX()>100&&e->getCursorX()<150&&e->getCursorY()>550&&e->getCursorY()<620)
-        {
-            if(a.hero1.gold>200)
-            {
-                a.hero1.gold-=200;
-                equip_number++;
-                auto hp300=Sprite::create("300hp.png");
-                hp300->setScale(2);
-                hp300->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(hp300,10);
-                a.hero1.HP_max+=300;
-                a.hero1.HP+=300;
-            }
-        }
-        if(e->getCursorX()>100&&e->getCursorX()<150&&e->getCursorY()>450&&e->getCursorY()<500)
-        {
-            if(a.hero1.gold>1000)
-            {
-                a.hero1.gold-=1000;
-                equip_number++;
-                auto hp1000=Sprite::create("1000hp.png");
-                hp1000->setScale(2);
-                hp1000->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(hp1000,10);
-                a.hero1.HP_max+=1000;
-                a.hero1.HP+=1000;
-            }
-        }
-        if(e->getCursorX()>100&&e->getCursorX()<150&&e->getCursorY()>320&&e->getCursorY()<380)
-        {
-            if(a.hero1.gold>2000)
-            {
-                a.hero1.gold-=2000;
-                equip_number++;
-                auto hp2000=Sprite::create("2000hp.png");
-                hp2000->setScale(2);
-                hp2000->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(hp2000,10);
-                a.hero1.HP_max+=2000;
-                a.hero1.HP+=2000;
-            }
-        }
-        if(e->getCursorX()>180&&e->getCursorX()<250&&e->getCursorY()>450&&e->getCursorY()<500)
-        {
-            if(a.hero1.gold>3000)
-            {
-                a.hero1.gold-=3000;
-                equip_number++;
-                auto att300=Sprite::create("300att.png");
-                att300->setScale(2);
-                att300->setPosition(equipX[equip_number],equipY[equip_number]);
-                layer_set->addChild(att300,10);
-                a.hero1.base_damage+=300;
-                
-            }
-        }
-        
+	if (flag_tab == true)
+	{
+		if (equip_number < 5)
+		{
+			if (e->getCursorX() > 0 && e->getCursorX() < 80 && e->getCursorY() > 550 && e->getCursorY() < 620)
+			{
+				if (a.hero1.gold > 200)
+				{
+					a.hero1.gold -= 200;
+					equip_number++;
+					auto att20 = Sprite::create("20att.png");
+					att20->setScale(2);
+					att20->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(att20, 10);
+					a.hero1.base_damage += 20;
+				}
+			}
+			if (e->getCursorX() > 0 && e->getCursorX() < 80 && e->getCursorY() > 450 && e->getCursorY() < 500)
+			{
+				if (a.hero1.gold > 1000)
+				{
+					a.hero1.gold -= 1000;
+					equip_number++;
+					auto att50 = Sprite::create("50att.png");
+					att50->setScale(2);
+					att50->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(att50, 10);
+					a.hero1.base_damage += 50;
+				}
+			}
+			if (e->getCursorX() > 0 && e->getCursorX() < 80 && e->getCursorY() > 320 && e->getCursorY() < 380)
+			{
+				if (a.hero1.gold > 2000)
+				{
+					a.hero1.gold -= 2000;
+					equip_number++;
+					auto att100 = Sprite::create("100att.png");
+					att100->setScale(2);
+					att100->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(att100, 10);
+					a.hero1.base_damage += 100;
+				}
+			}
+			if (e->getCursorX() > 100 && e->getCursorX() < 150 && e->getCursorY() > 550 && e->getCursorY() < 620)
+			{
+				if (a.hero1.gold > 200)
+				{
+					a.hero1.gold -= 200;
+					equip_number++;
+					auto hp300 = Sprite::create("300hp.png");
+					hp300->setScale(2);
+					hp300->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(hp300, 10);
+					a.hero1.HP_max += 300;
+					a.hero1.HP += 300;
+				}
+			}
+			if (e->getCursorX() > 100 && e->getCursorX() < 150 && e->getCursorY() > 450 && e->getCursorY() < 500)
+			{
+				if (a.hero1.gold > 1000)
+				{
+					a.hero1.gold -= 1000;
+					equip_number++;
+					auto hp1000 = Sprite::create("1000hp.png");
+					hp1000->setScale(2);
+					hp1000->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(hp1000, 10);
+					a.hero1.HP_max += 1000;
+					a.hero1.HP += 1000;
+				}
+			}
+			if (e->getCursorX() > 100 && e->getCursorX() < 150 && e->getCursorY() > 320 && e->getCursorY() < 380)
+			{
+				if (a.hero1.gold > 2000)
+				{
+					a.hero1.gold -= 2000;
+					equip_number++;
+					auto hp2000 = Sprite::create("2000hp.png");
+					hp2000->setScale(2);
+					hp2000->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(hp2000, 10);
+					a.hero1.HP_max += 2000;
+					a.hero1.HP += 2000;
+				}
+			}
+			if (e->getCursorX() > 180 && e->getCursorX() < 250 && e->getCursorY() > 450 && e->getCursorY() < 500)
+			{
+				if (a.hero1.gold > 3000)
+				{
+					a.hero1.gold -= 3000;
+					equip_number++;
+					auto att300 = Sprite::create("300att.png");
+					att300->setScale(2);
+					att300->setPosition(equipX[equip_number], equipY[equip_number]);
+					layer_set->addChild(att300, 10);
+					a.hero1.base_damage += 300;
+
+				}
+			}
+		}
         
     }
     
     std::cout<<e->getCursorX()<<" "<<e->getCursorY()<<std::endl;
 }
 
+void gamescene_houyi::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
+{
+	if (keyCode == EventKeyboard::KeyCode::KEY_A && sprite != NULL)
+	{
+		hero_attack = true;
+	}
+	if (1 == 1)
+	{
+		//技能1触发
+		if (keyCode == EventKeyboard::KeyCode::KEY_R && sprite != nullptr)
+		{
+			if (cd_ability1 == false)
+			{
+				if (LV_ability1 != 0)
+				{
+					ability1();
+				}
+			}
+		}
+		//技能2触发
+		if (keyCode == EventKeyboard::KeyCode::KEY_T && sprite != nullptr)
+		{
+			if (cd_ability2 == false)
+			{
+				if (LV_ability2 != 0)
+				{
+					ability2();
+				}
+			}
+		}
+		// 技能3触发
+		if (keyCode == EventKeyboard::KeyCode::KEY_G && sprite != nullptr)
+		{
+			if (cd_ability3 == false)
+			{
+				if (LV_ability3 != 0)
+				{
+					//选取目标
+					ability3Clicked = true;
+				}
+			}
+		}
+		//取消释放技能3
+		if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE && sprite != nullptr)
+		{
+			ability3Clicked = false;
+			if (cursor != nullptr)
+			{
+				cursor->removeFromParent(); cursor = nullptr;
+			}
+		}
+	}
+}
 
+void gamescene_houyi::onKeyPressed4(EventKeyboard::KeyCode keyCode, Event* event)
+{
+	if (keyCode == EventKeyboard::KeyCode::KEY_TAB)
+	{
+		flag_tab = 1 - flag_tab;
+		if (flag_tab == true)
+		{
+			store->setVisible(true);
 
-
-
-
-
+		}
+		else
+			store->setVisible(false);
+	}
+}
 
 void gamescene_houyi::getBloodbar(Sprite *guaisprite ,float a)
 {
-    
-    pBloodKongSp = Sprite::create("满血条.png");
-    pBloodKongSp->setScale(0.1,0.3);
-    pBloodKongSp->setPosition(Vec2(guaisprite->getContentSize().width / 2, guaisprite->getContentSize().height / 1.1));
-    guaisprite->addChild(pBloodKongSp,2);
-    auto pBloodManSp = Sprite::create("空血条.png");
-    
-    auto pBloodProGress = CCProgressTimer::create(pBloodManSp);
-    pBloodProGress->setType(kCCProgressTimerTypeBar);
-    pBloodProGress->setBarChangeRate(Vec2(1, 0));
-    pBloodProGress->setMidpoint(Vec2(1, 0));
-    pBloodProGress->setScale(0.06,0.15);
-    pBloodProGress->setPosition(Vec2(guaisprite->getContentSize().width / 2, guaisprite->getContentSize().height / 1.1));
-    pBloodProGress->setPercentage(a);
-    guaisprite->addChild(pBloodProGress,2);
+	if (guaisprite != nullptr)
+	{
+		pBloodKongSp = Sprite::create("HPbar_full.png");
+		pBloodKongSp->setScale(0.1, 0.3);
+		pBloodKongSp->setPosition(Vec2(guaisprite->getContentSize().width / 2, guaisprite->getContentSize().height / 1.1));
+		guaisprite->addChild(pBloodKongSp, 2);
+		auto pBloodManSp = Sprite::create("HPbar_empty.png");
+
+		auto pBloodProGress = CCProgressTimer::create(pBloodManSp);
+		pBloodProGress->setType(kCCProgressTimerTypeBar);
+		pBloodProGress->setBarChangeRate(Vec2(1, 0));
+		pBloodProGress->setMidpoint(Vec2(1, 0));
+		pBloodProGress->setScale(0.06, 0.15);
+		pBloodProGress->setPosition(Vec2(guaisprite->getContentSize().width / 2, guaisprite->getContentSize().height / 1.1));
+		pBloodProGress->setPercentage(a);
+		guaisprite->addChild(pBloodProGress, 2);
+	}
 }
 
 void gamescene_houyi::getBloodbar1(Sprite *guaisprite ,float a)
 {
     
 
-    auto pBloodManSp = Sprite::create("满血条.png");
+    auto pBloodManSp = Sprite::create("HPbar_full.png");
     
     auto pBloodProGress = CCProgressTimer::create(pBloodManSp);
     pBloodProGress->setType(kCCProgressTimerTypeBar);
@@ -515,12 +543,6 @@ void gamescene_houyi::getBloodbar1(Sprite *guaisprite ,float a)
     pBloodProGress->setPercentage(1-a);
     guaisprite->addChild(pBloodProGress,2);
 }
-
-
-
-
-
-
 
 int gamescene_houyi::getCurrentlvl(Sprite *sprite)
 {
@@ -533,27 +555,6 @@ int gamescene_houyi::getCurrentlvl(Sprite *sprite)
     }
     return lvl;
 }
-
-
-//bool gamescene_houyi::onKeyPressed1(EventKeyboard::KeyCode keyCode)
-//{
-//    if(keyCode == EventKeyboard::KeyCode::KEY_TAB)
-//        return (1-flag_tab);
-//}
-
-
-
-//void gamescene_houyi::update_keyboard(float t)
-//{
-//
-//    if(onKeyPressed1(cocos2d::EventKeyboard::KeyCode::KEY_TAB))
-//        store->setVisible(true);
-//    else
-//        store->setVisible(false);
-//
-//
-//}
-
 
 void gamescene_houyi::update_time(float t)
 {
@@ -630,24 +631,25 @@ void gamescene_houyi::update_time(float t)
     }
 }
 
-
 bool gamescene_houyi::InTheArea(float X, float Y,Sprite  * A)
 {
-    float positionX = A->getPositionX();
-    float positionY = A->getPositionY();
-    float contentSizeX = 2*A->getContentSize().width;
-    float contentSizeY = 2*A->getContentSize().height;
-    float area_Xmin = positionX - 0.5*contentSizeX;
-    float area_Xmax = positionX + 0.5*contentSizeX;
-    float area_Ymin = positionY - 0.5*contentSizeY;
-    float area_Ymax = positionY + 0.5*contentSizeY;
-    if (X >= area_Xmin && X <= area_Xmax && Y >= area_Ymin && Y <= area_Ymax)
-    {
-        return true;
-    }
-    else return false;
+	if (A != nullptr)
+	{
+		float positionX = A->getPositionX();
+		float positionY = A->getPositionY();
+		float contentSizeX = 2 * A->getContentSize().width;
+		float contentSizeY = 2 * A->getContentSize().height;
+		float area_Xmin = positionX - 0.5*contentSizeX;
+		float area_Xmax = positionX + 0.5*contentSizeX;
+		float area_Ymin = positionY - 0.5*contentSizeY;
+		float area_Ymax = positionY + 0.5*contentSizeY;
+		if (X >= area_Xmin && X <= area_Xmax && Y >= area_Ymin && Y <= area_Ymax)
+		{
+			return true;
+		}
+		else return false;
+	}
 }
-
 
 void gamescene_houyi::clickCreep_enemy(float X, float Y)
 {
@@ -718,36 +720,6 @@ void gamescene_houyi::clickCreep_enemy(float X, float Y)
     std::cout<<flag_sprite<<std::endl;
 }
 
-
-void gamescene_houyi::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
-{
-    if (keyCode == EventKeyboard::KeyCode::KEY_A && sprite!=NULL)
-    {
-        hero_attack=true;
-    }
-}
-
-void gamescene_houyi::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
-{
-    
-}
-
-void gamescene_houyi::onKeyPressed4(EventKeyboard::KeyCode keyCode, Event* event)
-{
-    if (keyCode == EventKeyboard::KeyCode::KEY_TAB)
-    {
-        flag_tab=1-flag_tab;
-        if(flag_tab==true)
-        {
-            store->setVisible(true);
-            
-        }
-        else
-            store->setVisible(false);
-    }
-}
-
-
 void gamescene_houyi::update_Melee_creep1_attack(float t)
 {
     for(int j=0;j<creep_i;j++)
@@ -813,7 +785,7 @@ void gamescene_houyi::update_Melee_creep1_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(b.hero1.HP!=0)
+            if(b.hero1.HP>0)
             {
                 X[8]=-Melee_creep1[j]->getPositionX()+ai->getPositionX();
                 Y[8]=-Melee_creep1[j]->getPositionY()+ai->getPositionY();
@@ -957,7 +929,7 @@ void gamescene_houyi::update_Melee_creep2_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(a.hero1.HP!=0)
+            if(a.hero1.HP>0)
             {
                 X[8]=-Melee_creep2[j]->getPositionX()+sprite->getPositionX();
                 Y[8]=-Melee_creep2[j]->getPositionY()+sprite->getPositionY();
@@ -1092,7 +1064,7 @@ void gamescene_houyi::update_Range_creep1_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(b.hero1.HP!=0)
+            if(b.hero1.HP>0)
             {
                 X[8]=-Range_creep1[j]->getPositionX()+ai->getPositionX();
                 Y[8]=-Range_creep1[j]->getPositionY()+ai->getPositionY();
@@ -1234,7 +1206,7 @@ void gamescene_houyi::update_Range_creep2_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(a.hero1.HP!=0)
+            if(a.hero1.HP > 0)
             {
                 X[8]=-Range_creep2[j]->getPositionX()+sprite->getPositionX();
                 Y[8]=-Range_creep2[j]->getPositionY()+sprite->getPositionY();
@@ -1372,7 +1344,7 @@ void gamescene_houyi::update_Catapult1_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(b.hero1.HP!=0)
+            if(b.hero1.HP > 0)
             {
                 X[8]=-Catapult1[j]->getPositionX()+ai->getPositionX();
                 Y[8]=-Catapult1[j]->getPositionY()+ai->getPositionY();
@@ -1513,7 +1485,7 @@ void gamescene_houyi::update_Catapult2_attack(float t)
                     dis[7]=X[7]*X[7]+Y[7]*Y[7];
                 }
             }
-            if(a.hero1.HP!=0)
+            if(a.hero1.HP > 0)
             {
                 X[8]=-Catapult2[j]->getPositionX()+sprite->getPositionX();
                 Y[8]=-Catapult2[j]->getPositionY()+sprite->getPositionY();
@@ -1586,8 +1558,6 @@ void gamescene_houyi::update_Catapult2_attack(float t)
         }
     }
 }
-
-
 
 void gamescene_houyi::update_tower1_attack(float t)
 {
@@ -1695,153 +1665,100 @@ void gamescene_houyi::update_tower1_attack(float t)
 
 void gamescene_houyi::update_tower2_attack(float t)
 {
-    bool attack_flag=false;
-    int dis_hero=1000000;
-    if(b.tower.HP>0)
-    {
-        for(int j=0;j<creep_i;j++)
-        {
-            
-            int dis_Melee_creep=1000000,dis_Range_creep=1000000,dis_Catapult=1000000;
-            
-            if(flag_creep==true)
-            {
-                if(a.melee.HP[j]>0 && attack_flag==false)
-                {
-                    
-                    dis_Melee_creep=abs(Melee_creep1[j]->getPositionX()-Tower2->getPositionX());
-                    if(dis_Melee_creep<300)
-                    {
-                        attack_flag=true;
-                        pb=Sprite::create("PB01.png");
-                        pb->setPosition(Tower2->getPositionX(),Tower2->getPositionY()+50);
-                        this->addChild(pb);
-                        auto to=MoveTo::create(0.2,Vec2(Melee_creep1[j]->getPositionX(),Melee_creep1[j]->getPositionY()));
-                        auto hide=Hide::create();
-                        pb->runAction(CCSequence::create(to,hide,NULL));
-                        a.melee.HP[j]-=b.tower.base_damage;
-                        
-                    }
-                }
-                if(a.range.HP[j]>0 && attack_flag==false)
-                {
-                    dis_Range_creep=abs(Range_creep1[j]->getPositionX()-Tower2->getPositionX());
-                    if(dis_Range_creep<300)
-                    {
-                        attack_flag=true;
-                        pb=Sprite::create("PB01.png");
-                        pb->setPosition(Tower2->getPositionX(),Tower2->getPositionY()+50);
-                        this->addChild(pb);
-                        auto to=MoveTo::create(0.2,Vec2(Range_creep1[j]->getPositionX(),Range_creep1[j]->getPositionY()));
-                        auto hide=Hide::create();
-                        pb->runAction(CCSequence::create(to,hide,NULL));
-                        a.range.HP[j]-=b.tower.base_damage;
-                        
-                    }
-                }
-                if(a.catapult.HP[j]>0 && attack_flag==false)
-                {
-                    dis_Catapult=abs(Tower2->getPositionX()-Catapult1[j]->getPositionX());
-                    if(dis_Catapult<300)
-                    {
-                        attack_flag=true;
-                        pb=Sprite::create("PB01.png");
-                        pb->setPosition(Tower2->getPositionX(),Tower2->getPositionY()+50);
-                        this->addChild(pb);
-                        auto to=MoveTo::create(0.2,Vec2(Catapult1[j]->getPositionX(),Catapult1[j]->getPositionY()));
-                        auto hide=Hide::create();
-                        pb->runAction(CCSequence::create(to,hide,NULL));
-                        a.catapult.HP[j]-=b.tower.base_damage;
-                        
-                    }
-                }
-                if(a.hero1.HP>0 && attack_flag==false)
-                {
-                    dis_hero=abs(Tower2->getPositionX()-sprite->getPositionX());
-                    if(dis_hero<300)
-                    {
-                        attack_flag=true;
-                        pb=Sprite::create("PB01.png");
-                        pb->setPosition(Tower2->getPositionX(),Tower2->getPositionY()+50);
-                        this->addChild(pb);
-                        auto to=MoveTo::create(0.2,Vec2(sprite->getPositionX(),sprite->getPositionY()));
-                        auto hide=Hide::create();
-                        pb->runAction(CCSequence::create(to,hide,NULL));
-                        a.hero1.HP-=b.tower.base_damage;
-                    }
-                }
-            }
-        }
-        if(a.hero1.HP>0 && attack_flag==false)
-        {
-            dis_hero=abs(Tower2->getPositionX()-sprite->getPositionX());
-            if(dis_hero<300)
-            {
-                attack_flag=true;
-                pb=Sprite::create("PB01.png");
-                pb->setPosition(Tower2->getPositionX(),Tower2->getPositionY()+50);
-                this->addChild(pb);
-                auto to=MoveTo::create(0.2,Vec2(sprite->getPositionX(),sprite->getPositionY()));
-                auto hide=Hide::create();
-                pb->runAction(CCSequence::create(to,hide,NULL));
-                a.hero1.HP-=b.tower.base_damage;
-            }
-        }
-    }
-    
-    
-    for(int j=0;j<creep_i;j++)
-    {
-        
-        if(a.melee.HP[j]<=0 && Melee_creep1[creep_i]!=NULL)
-        {
-            this->removeChild(Melee_creep1[j]);
-            Melee_creep1[j]=NULL;
-            b.hero1.gold+=20;
-            b.hero1.exp+=10;
-        }
-        if(a.range.HP[j]<=0 && Range_creep1[creep_i]!=NULL)
-        {
-            this->removeChild(Range_creep1[j]);
-            Range_creep1[j]=NULL;
-            b.hero1.gold+=50;
-            b.hero1.exp+=15;
-        }
-        if(a.catapult.HP[j]<=0 && Catapult1[creep_i]!=NULL)
-        {
-            this->removeChild(Catapult1[creep_i]);
-            Catapult1[j]=NULL;
-            b.hero1.gold+=50;
-            b.hero1.exp+=20;
-        }
-        
-    }
-    
-    
+	bool attack_flag = false;
+	int dis_hero = 1000000;
+	if (b.tower.HP > 0)
+	{
+		for (int j = 0; j < creep_i; j++)
+		{
+
+			int dis_Melee_creep = 1000000, dis_Range_creep = 1000000, dis_Catapult = 1000000;
+
+			if (flag_creep == true)
+			{
+				if (a.melee.HP[j] > 0 && attack_flag == false)
+				{
+
+					dis_Melee_creep = abs(Melee_creep1[j]->getPositionX() - Tower2->getPositionX());
+					if (dis_Melee_creep < 300)
+					{
+						attack_flag = true;
+						pb = Sprite::create("PB01.png");
+						pb->setPosition(Tower2->getPositionX(), Tower2->getPositionY() + 50);
+						this->addChild(pb);
+						auto to = MoveTo::create(0.2, Vec2(Melee_creep1[j]->getPositionX(), Melee_creep1[j]->getPositionY()));
+						auto hide = Hide::create();
+						pb->runAction(CCSequence::create(to, hide, NULL));
+						a.melee.HP[j] -= b.tower.base_damage;
+
+					}
+				}
+				if (a.range.HP[j] > 0 && attack_flag == false)
+				{
+					dis_Range_creep = abs(Range_creep1[j]->getPositionX() - Tower2->getPositionX());
+					if (dis_Range_creep < 300)
+					{
+						attack_flag = true;
+						pb = Sprite::create("PB01.png");
+						pb->setPosition(Tower2->getPositionX(), Tower2->getPositionY() + 50);
+						this->addChild(pb);
+						auto to = MoveTo::create(0.2, Vec2(Range_creep1[j]->getPositionX(), Range_creep1[j]->getPositionY()));
+						auto hide = Hide::create();
+						pb->runAction(CCSequence::create(to, hide, NULL));
+						a.range.HP[j] -= b.tower.base_damage;
+
+					}
+				}
+				if (a.catapult.HP[j] > 0 && attack_flag == false)
+				{
+					dis_Catapult = abs(Tower2->getPositionX() - Catapult1[j]->getPositionX());
+					if (dis_Catapult < 300)
+					{
+						attack_flag = true;
+						pb = Sprite::create("PB01.png");
+						pb->setPosition(Tower2->getPositionX(), Tower2->getPositionY() + 50);
+						this->addChild(pb);
+						auto to = MoveTo::create(0.2, Vec2(Catapult1[j]->getPositionX(), Catapult1[j]->getPositionY()));
+						auto hide = Hide::create();
+						pb->runAction(CCSequence::create(to, hide, NULL));
+						a.catapult.HP[j] -= b.tower.base_damage;
+
+					}
+				}
+				if (a.hero1.HP > 0 && attack_flag == false)
+				{
+					dis_hero = abs(Tower2->getPositionX() - sprite->getPositionX());
+					if (dis_hero < 300)
+					{
+						attack_flag = true;
+						pb = Sprite::create("PB01.png");
+						pb->setPosition(Tower2->getPositionX(), Tower2->getPositionY() + 50);
+						this->addChild(pb);
+						auto to = MoveTo::create(0.2, Vec2(sprite->getPositionX(), sprite->getPositionY()));
+						auto hide = Hide::create();
+						pb->runAction(CCSequence::create(to, hide, NULL));
+						a.hero1.HP -= b.tower.base_damage;
+					}
+				}
+			}
+		}
+		if (a.hero1.HP > 0 && attack_flag == false)
+		{
+			dis_hero = abs(Tower2->getPositionX() - sprite->getPositionX());
+			if (dis_hero < 300)
+			{
+				attack_flag = true;
+				pb = Sprite::create("PB01.png");
+				pb->setPosition(Tower2->getPositionX(), Tower2->getPositionY() + 50);
+				this->addChild(pb);
+				auto to = MoveTo::create(0.2, Vec2(sprite->getPositionX(), sprite->getPositionY()));
+				auto hide = Hide::create();
+				pb->runAction(CCSequence::create(to, hide, NULL));
+				a.hero1.HP -= b.tower.base_damage;
+			}
+		}
+	}
 }
-
-
-
-
-//int gamescene_houyi::getDistance(Sprite *target1 ,Sprite *target2)
-//{
-//    int X=target1->getPositionX()-target2->getPositionX();
-//    int Y=target1->getPositionY()-target2->getPositionY();
-//    return sqrt(X*X+Y*Y);
-//}
-
-
-
-//void gamescene_houyi::boundingbox_update(float t)
-//{
-//    if(a.melee.HP[creep_i]>0 && b.melee.HP[creep_i]>0)
-//    {
-//        if(Melee_creep1[creep_i]->boundingBox().intersectsRect(Melee_creep2[creep_i]->boundingBox()))
-//        {
-//            Melee_creep1[creep_i]->stopAllActions();
-//        }
-//    }
-//}
 
 void gamescene_houyi::update_ai(float t)
 {
@@ -1879,25 +1796,33 @@ void gamescene_houyi::update_ai(float t)
                 target=Catapult1[creep_i-i-1];
             }
         }
-        dis[12]=abs(ai->getPositionX()-sprite->getPositionX());
-        dis[13]=abs(ai->getPositionX()-Tower1->getPositionX());
-        dis[14]=abs(ai->getPositionX()-Crystal1->getPositionX());
-        if(dis[12]<min_dis)
-        {
-            min_dis=dis[12];
-            target=sprite;
-        }
-        if(dis[13]<min_dis)
-        {
-            min_dis=dis[13];
-            target=Tower1;
-        }
-        if(dis[14]<min_dis)
-        {
-            min_dis=dis[14];
-            target=Crystal1;
-        }
-
+		if (sprite != nullptr)
+		{
+			dis[12] = abs(ai->getPositionX() - sprite->getPositionX());
+			if (dis[12] < min_dis)
+			{
+				min_dis = dis[12];
+				target = sprite;
+			}
+		}
+		if (Tower1 != nullptr)
+		{
+			dis[13] = abs(ai->getPositionX() - Tower1->getPositionX());
+			if (dis[13] < min_dis)
+			{
+				min_dis = dis[13];
+				target = Tower1;
+			}
+		}
+		if (Crystal1 != nullptr)
+		{
+			dis[14] = abs(ai->getPositionX() - Crystal1->getPositionX());
+			if (dis[14] < min_dis)
+			{
+				min_dis = dis[14];
+				target = Crystal1;
+			}
+		}
         if(min_dis<=100)
         {
             if(target==sprite)
@@ -1938,7 +1863,6 @@ void gamescene_houyi::update_ai(float t)
         ai=NULL;
     }
 }
-
 
 void gamescene_houyi::update_heroHP(float t)
 {
@@ -2017,7 +1941,6 @@ void gamescene_houyi::update_heroHP(float t)
     }
 }
 
-
 void gamescene_houyi::hero_Attack()
 {
     this->unschedule(schedule_selector(gamescene_houyi::boundingbox_update1));
@@ -2026,7 +1949,7 @@ void gamescene_houyi::hero_Attack()
 
 void gamescene_houyi::boundingbox_update1(float t)
 {
-    if(sprite!=NULL && flag_sprite!=NULL)
+    if(sprite!= nullptr && flag_sprite!=nullptr && cd_ability3==false)
     {
         if(sprite->boundingBox().intersectsRect(flag_sprite->boundingBox()))
         {
@@ -2037,26 +1960,26 @@ void gamescene_houyi::boundingbox_update1(float t)
                 {
                     if(flag_sprite==Melee_creep2[i])
                     {
-                        b.melee.HP[i]-=a.hero1.base_damage;
+						b.melee.HP[i] -= a.hero1.base_damage *ability4();
                         if(b.melee.HP[i]<=0)
                             flag_sprite=NULL;
                     }
                     else if(flag_sprite==Range_creep2[i])
                     {
-                        b.range.HP[i]-=a.hero1.base_damage;
+                        b.range.HP[i]-=a.hero1.base_damage *ability4();
                         if(b.range.HP[i]<=0)
                             flag_sprite=NULL;
                     }
                     else if(flag_sprite==Catapult2[i])
                     {
-                        b.catapult.HP[i]-=a.hero1.base_damage;
+                        b.catapult.HP[i]-=a.hero1.base_damage *ability4();
                         if(b.catapult.HP[i]<=0)
                             flag_sprite=NULL;
                     }
                 }
                 if(flag_sprite==ai)
                 {
-                    b.hero1.HP-=a.hero1.base_damage;
+                    b.hero1.HP-=a.hero1.base_damage *ability4();
                     if(b.hero1.HP<0)
                         flag_sprite=NULL;
                 }
@@ -2079,8 +2002,16 @@ void gamescene_houyi::boundingbox_update1(float t)
         hero_attack_target=false;
 }
 
-
-
-
-
-
+//计算两者距离
+float gamescene_houyi::Distance(Sprite * A, Sprite * B)
+{
+	if (A != nullptr&&B != nullptr)
+	{
+		float positionX_A = A->getPositionX();
+		float positionY_A = A->getPositionY();
+		float positionX_B = B->getPositionX();
+		float positionY_B = B->getPositionY();
+		float distance = sqrt(pow(positionX_A - positionX_B, 2) + pow(positionY_A - positionY_B, 2));
+		return distance;
+	}
+}

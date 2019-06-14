@@ -15,6 +15,8 @@ void attr::init()
     hero1.base_damage=30;
     hero1.gold=1000000;
     hero1.exp=0;
+	hero1.MoveSpeed = 200;
+	hero1.AttackInterval = 0.2;
     
     melee.attack_dis=100;
     melee.base_damage=20;

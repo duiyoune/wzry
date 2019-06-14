@@ -17,14 +17,16 @@ public:
         int HP;
         int HP_max;
         int base_damage;
+		double MoveSpeed;
+		double AttackInterval;
         int attack_dis;
         int gold;
         int exp;
     }hero1;
     struct attr_creep
     {
-        int HP[600];
-        int base_damage;
+        double HP[600];
+        double base_damage;
         int attack_dis;
     }melee,range,catapult;
     struct attr_tower
